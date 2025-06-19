@@ -1,4 +1,4 @@
-# SolidJS + Tanstack Router + Better Auth + Cloudflare + Vite
+# Cloudflare Workers Vite Plugin + Vite + SolidJS and Tanstack Router + Hono + Better Auth 
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/jhomra21/cloudflare-workers-solid-tanstack-spa-betterauth-D1-KV.git)
 > [!IMPORTANT]
