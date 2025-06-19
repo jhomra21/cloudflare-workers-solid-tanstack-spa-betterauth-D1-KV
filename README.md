@@ -14,10 +14,20 @@
 > - `GOOGLE_CLIENT_SECRET`
 
 > [!WARNING]
-> The deploy button **does not** run database migrations. After your first deployment, you must manually apply the initial schema to your new production D1 database. Run the following command, replacing `<YOUR_DB_NAME>` with the name of your database:
-> ```bash
-> bunx wrangler d1 migrations apply <YOUR_DB_NAME> --remote
-> ```
+> The deploy button **does not** run database migrations. To get your database set up correctly, you must run the migrations from your local machine after the first deployment.
+>
+> 1.  **Clone the repository** to your local machine:
+>     ```bash
+>     git clone https://github.com/jhomra21/cloudflare-workers-solid-tanstack-spa-betterauth-D1-KV.git
+>     ```
+> 2.  **Navigate into the project directory**:
+>     ```bash
+>     cd cloudflare-workers-solid-tanstack-spa-betterauth-D1-KV
+>     ```
+> 3.  **Run the migration command**. This will apply the initial schema from the `migrations` folder to your new production D1 database. Replace `<YOUR_DB_NAME>` with the name of the database in `wrangler.jsonc`.
+>     ```bash
+>     bunx wrangler d1 migrations apply <YOUR_DB_NAME> --remote
+>     ```
 
 A comprehensive template for building modern web applications using SolidJS on the frontend and a Cloudflare-powered backend. This template integrates Better Auth for authentication, Cloudflare D1 for database storage, Cloudflare Workers for serverless APIs, and Cloudflare KV for session management.
 
