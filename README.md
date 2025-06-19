@@ -1,7 +1,9 @@
 # SolidJS + Tanstack Router + Better Auth + Cloudflare + Vite
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/jhomra21/cloudflare-workers-solid-tanstack-spa-betterauth-D1-KV.git)
-
+> [!IMPORTANT]
+> After deploying, you **must** update the `BETTER_AUTH_URL` variable in the `[vars]` section of your `wrangler.jsonc` file to your deployed worker's public URL and then push to git or deploy the worker again. 
+> This ensures that authentication callbacks and other auth features work correctly in the production environment.
 
 A comprehensive template for building modern web applications using SolidJS on the frontend and a Cloudflare-powered backend. This template integrates Better Auth for authentication, Cloudflare D1 for database storage, Cloudflare Workers for serverless APIs, and Cloudflare KV for session management.
 
@@ -100,6 +102,7 @@ For sensitive values (API keys, secrets, etc.), use the Wrangler CLI to securely
 ```bash
 wrangler secret put <SECRET_NAME>
 ```
+
 
 > [!NOTE]
 > **Managing Backend Secrets**
