@@ -207,7 +207,7 @@ The solution is to embrace this SPA behavior by creating a dedicated client-side
 
 This approach creates a seamless "shim" within your client application that correctly bridges the OAuth redirect and your backend API, working in harmony with the SPA development server.
 
-## Setting up Google OAuth Credentials
+## 🗝 Setting up Google OAuth Credentials
 
 To enable Google Sign-In for your application, you need to create OAuth 2.0 credentials in the Google Cloud Console. Follow these steps to get your Client ID and Client Secret.
 
