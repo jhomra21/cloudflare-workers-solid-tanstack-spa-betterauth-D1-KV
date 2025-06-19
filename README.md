@@ -18,6 +18,10 @@ A comprehensive template for building modern web applications using SolidJS on t
 
 ---
 
+## ✨ Application Preview
+
+![Application Preview](readme_assets/dashboard-home-page.png)
+
 ## 🚀 Getting Started (For Local Development)
 
 This guide is for developers who want to clone the repository and run the project on their local machine first.
