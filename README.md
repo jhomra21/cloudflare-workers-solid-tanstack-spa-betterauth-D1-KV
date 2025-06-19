@@ -97,9 +97,9 @@ Your application requires secrets and environment variables to function.
     cp example.dev.vars .dev.vars
     ```
 
-2.  **Generate `BETTER_AUTH_SECRET`**: See the [**`BETTER_AUTH_SECRET` Generation Guide**](#-better-auth-secret) below for instructions. Once you have the secret, paste it into your `.dev.vars` file.
+2.  **Generate `BETTER_AUTH_SECRET`**: See the [**`BETTER_AUTH_SECRET` Generation Guide**](#better-auth-secret) below for instructions. Once you have the secret, paste it into your `.dev.vars` file.
 
-3.  **Add Google Credentials**: See the [**Google OAuth Credentials Guide**](#-google-oauth-credentials) below to get your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then paste them into `.dev.vars`.
+3.  **Add Google Credentials**: See the [**Google OAuth Credentials Guide**](#google-oauth-credentials) below to get your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then paste them into `.dev.vars`.
 
 > [!WARNING]
 > **Never commit `.dev.vars` to version control.** The file is already listed in `.gitignore`.
@@ -132,10 +132,10 @@ Your app needs secret keys for authentication and a URL to point to itself. You 
     > [!IMPORTANT]
     > Make sure to save as 'Secret' and not 'Text' for these:
     *   `BETTER_AUTH_SECRET`: 
-        *   **Value**: Follow the [**`BETTER_AUTH_SECRET` Generation Guide**](#-better-auth-secret) below to generate a secret, then paste it here.
+        *   **Value**: Follow the [**`BETTER_AUTH_SECRET` Generation Guide**](#better-auth-secret) below to generate a secret, then paste it here.
         *   Click the **Encrypt** button to keep it secure.
     *   `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`:
-        *   **Value**: Follow the [**Google OAuth Credentials Guide**](#-google-oauth-credentials) below to get your credentials, then paste them here.
+        *   **Value**: Follow the [**Google OAuth Credentials Guide**](#google-oauth-credentials) below to get your credentials, then paste them here.
         *   Click **Encrypt** for both of these as well.
 
 ### Step 2: Run the Database Migration
