@@ -26,7 +26,7 @@ const hexToBuffer = (hex: string): ArrayBuffer => {
 };
 
 // Configuration for PBKDF2 hashing. These values are a good balance of security and performance for a serverless environment.
-const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_ITERATIONS = 25000;
 const PBKDF2_SALT_LENGTH = 16; // 128 bits
 const PBKDF2_HASH_LENGTH = 32; // 256 bits
 const PBKDF2_ALGORITHM = 'PBKDF2';
