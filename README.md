@@ -1,14 +1,8 @@
 # SolidJS + Tanstack Router + Better Auth + Cloudflare + Vite
 
-This template should help get you started developing with SolidJS and TypeScript in Vite.
+A comprehensive template for building modern web applications using SolidJS on the frontend and a Cloudflare-powered backend. This template integrates Better Auth for authentication, Cloudflare D1 for database storage, Cloudflare Workers for serverless APIs, and Cloudflare KV for session management.
 
 The template uses [Vite](https://vitejs.dev/), [Solid-js](https://www.solidjs.com/), [Tanstack Solid Router](https://tanstack.com/router/v1/docs/adapters/solid-router), [Better-auth](https://better-auth.dev/), and [Cloudflare](https://www.cloudflare.com/).
-
-## Getting Started
-
-# SolidJS & Cloudflare Full-Stack Template
-
-A comprehensive template for building modern web applications using SolidJS on the frontend and a Cloudflare-powered backend. This template integrates Better Auth for authentication, Cloudflare D1 for database storage, Cloudflare Workers for serverless APIs, and client hosting, and Cloudflare KV for session management.
 
 ## 🌟 Core Features
 
@@ -20,34 +14,18 @@ A comprehensive template for building modern web applications using SolidJS on t
 ### 🏗️ **Modern Architecture**
 - **SolidJS Frontend**: Reactive UI with TanStack Router for file-based routing and TanStack Query for server state management.
 - **Hono.js API**: Lightweight, fast API layer running on Cloudflare Workers.
-- **Cloudflare Stack**: Leverages Cloudflare D1, KV, Workers for a scalable and performant infrastructure.
+- **Cloudflare Stack**: Leverages Cloudflare Vite Plugin, D1, KV, Workers for a scalable and performant infrastructure.
 
-## 🚀 Technical Implementation
+## 🚀 Getting Started
 
-### **Database Architecture**
-This project uses a Cloudflare-centric database strategy:
+Follow these steps to set up your project for local development and production.
 
-- **Cloudflare D1** (SQLite): Centralized storage for authentication data (users, accounts, etc.) and application data.
-- **Cloudflare KV**: Utilized for session storage, enabling fast edge validation of user sessions.
-
-### Client-Side Authentication & State Management
-
-User authentication state on the client is managed by TanStack Query, providing a robust, cacheable, and reactive "source of truth" for the user's session.
-
--   **Session Caching**: A global query with the key `['session']` is responsible for fetching and caching the user's session data. This is defined in `src/lib/auth-guard.ts` within `sessionQueryOptions`.
--   **API Client**: The `better-auth/client` library, initialized in `src/lib/auth-client.ts`, handles the low-level communication with the backend authentication API (e.g., fetching the session, signing out).
--   **Route Protection**: TanStack Router's `loader` functions are used to protect routes. The `protectedLoader` in `src/lib/auth-guard.ts` ensures that a valid session exists before rendering a protected route, redirecting to `/auth` if not.
--   **Sign-Out**: The `useSignOut` hook in `src/lib/auth-actions.ts` orchestrates the sign-out process by calling the auth client, manually clearing the `['session']` from the query cache for immediate UI updates, and redirecting the user.
-
-This setup decouples the UI components from the authentication logic, allowing components to simply use the data from the `['session']` query to render user-specific content.
-
-## Initial Cloudflare Setup
+### 1. Initial Cloudflare Setup
 [Cloudflare Wrangler D1 Commands Documentation](https://developers.cloudflare.com/workers/wrangler/commands/#d1)
 
-Before you can run migrations or start the application, you need to create a Cloudflare D1 database and a KV namespace. These will be used by `better-auth` to store user data and session information.
+Before you can run the application, you need to create a Cloudflare D1 database and a KV namespace. These will be used by `better-auth` to store user data and session information.
 
-### 1. Create the D1 Database
-
+#### Create the D1 Database
 Run the following command to create your D1 database. Replace `<YOUR_DB_NAME>` with a name of your choice (e.g., `my-app-db`).
 
 ```bash
@@ -73,8 +51,7 @@ Cloudflare will return a configuration block. Copy this and add it to the `d1_da
 > [!IMPORTANT]
 > The `binding` name must be `"DB"` as this is what the application code expects.
 
-### 2. Create the KV Namespace
-
+#### Create the KV Namespace
 Run the following command to create the KV namespace for session storage.
 
 ```bash
@@ -99,50 +76,43 @@ This command will also return a configuration block. Add it to the `kv_namespace
 > [!IMPORTANT]
 > The `binding` name must be `"SESSIONS"` as this is what the application code expects.
 
-## 🛠 Tech Stack
+### 2. Environment Variables & Secrets
+[Cloudflare Wrangler: Managing Secrets](https://developers.cloudflare.com/workers/wrangler/commands/#secret)
 
-### **Backend**
-- **Hono.js**: Fast, lightweight API framework running on Cloudflare Workers.
-- **Better Auth**: Authentication system utilizing Cloudflare D1 for user data storage.
-- **Cloudflare D1**: Primary database for application and authentication data.
-- **Cloudflare KV**: Key-value store for session management.
+#### Local Development
+> [!WARNING]
+> **Never commit `.dev.vars` to version control.**  
+> Double-check that `.dev.vars` is listed in your `.gitignore` to prevent accidental leaks.
+Store all local environment variables and secrets in a `.dev.vars` file at the project root.
 
-### **Frontend**
-- **SolidJS**: Reactive UI framework.
-- **TanStack Router**: File-based routing with loaders and type safety.
-- **TanStack Query**: Server state management with features like optimistic updates.
-- **TailwindCSS + solid-ui (shadcn for solidjs)**: Modern, accessible component library.
+#### Production
+For sensitive values (API keys, secrets, etc.), use the Wrangler CLI to securely add them to your Cloudflare Worker environment. These secrets are never stored in your repository and are only accessible to your deployed Worker.
+```bash
+wrangler secret put <SECRET_NAME>
+```
 
-### **Infrastructure**
-- **Cloudflare Workers**: Frontend Client and Serverless API deployment.
-- **Cloudflare D1**: SQL database for persistent data storage.
-- **Cloudflare KV**: Edge key-value storage.
-- **Durable Objects**: Voice chat rooms
+> [!NOTE]
+> **Managing Backend Secrets**
+> Only non-sensitive configuration values should be stored in the `vars` section of `wrangler.jsonc`. All sensitive keys (like API tokens) should be added to your Cloudflare Worker using the `wrangler secret put <KEY_NAME>` command.
+
+> [!IMPORTANT]
+> **Client-Side Build Variables in Cloudflare Workers**
+> Due to the Cloudflare Vite plugin integration, frontend environment variables (e.g., `VITE_...`) are *not* sourced from your Worker's main variables and secrets. They **must** be defined in the Cloudflare Workers *build* settings. > In the Cloudflare Dashboard, navigate to your deployed worker's **Settings > Build & deployments > Environment variables** to add them.
 
 
-## 📁 Project Structure
+### 3. Database Migrations (D1)
 
-## Database Migrations (D1)
-
-To apply schema changes to the remote Cloudflare D1 database, we use migrations.
-
-### Initial Setup & Local Development
-
+#### Initial Setup & Local Development
 To set up your local D1 database for the first time, you need to apply the initial migration. This command executes the SQL files in the `migrations/` folder (starting with `0000_initial.sql`) to create the required tables for `better-auth`.
 
 Run the following command in your terminal:
 ```bash
 wrangler d1 migrations apply <D1 database_name> --local
 ```
-This ensures your local database schema is in sync with the application's requirements. 
+This ensures your local database schema is in sync with the application's requirements. For remote databases, you would use the `--remote` flag instead.
 
-For remote databases, you would use the `--remote` flag instead, like this:
-```bash
-wrangler d1 migrations apply <D1 database_name> --remote
-```
-
-### Workflow for DB Changes
-For any new migrations, besides the one included which is for better-auth
+#### Workflow for DB Changes
+For any new migrations, besides the one included which is for better-auth:
 1.  **Create a New Migration File**:
     -   In the `migrations` directory, create a new SQL file.
     -   The filename must start with a number that is higher than the previous one (e.g., `migrations/0001_add_new_field.sql`).
@@ -152,63 +122,48 @@ For any new migrations, besides the one included which is for better-auth
     -   Example: `ALTER TABLE "user" ADD COLUMN bio TEXT;`
 
 3.  **Apply the Migration**:
-    -   Run the following command in your terminal. Wrangler is smart enough to only apply new, unapplied migrations
+    -   Run the following command in your terminal. Wrangler is smart enough to only apply new, unapplied migrations.
     - ```bash
-        wrangler d1 migrations apply <YOUR_DB_NAME> [--remote or --local] //Choose where to run migrations, development or production DB
+        wrangler d1 migrations apply <YOUR_DB_NAME> --remote
         ```
      
+## 🔧 Technical Deep Dive
 
-## Environment Variables & Secrets
+This section provides more detail on the project's architecture and implementation.
 
-> [!IMPORTANT]
-> **Client-Side Build Variables in Cloudflare Workers**
-> Due to the Cloudflare Vite plugin integration, frontend environment variables (e.g., `VITE_...`) are *not* sourced from your Worker's main variables and secrets. They **must** be defined in the Cloudflare Workers *build* settings. Navigate to your worker's **Settings > Build > Variables and Secrets** to add them.
+### Database & API Architecture
+This project uses a Cloudflare-centric database strategy:
 
-> [!NOTE]
-> **Managing Backend Secrets**
-> Only non-sensitive configuration values should be stored in the `vars` section of `wrangler.jsonc`. All sensitive keys (like API tokens) should be added to your Cloudflare Worker using the `wrangler secret put <KEY_NAME>` command. This practice ensures that secrets are not committed to your version control history.
+- **Cloudflare D1** (SQLite): Centralized storage for authentication data (users, accounts, etc.) and application data.
+- **Cloudflare KV**: Utilized for session storage, enabling fast edge validation of user sessions.
 
-## Development Notes
+The backend API is built with **Hono.js** and runs on Cloudflare Workers, providing a lightweight and high-performance serverless foundation.
+
+### Client-Side Authentication & State Management
+User authentication state on the client is managed by TanStack Query, providing a robust, cacheable, and reactive "source of truth" for the user's session.
+
+-   **API Client**: The `better-auth/client` library, initialized in `src/lib/auth-client.ts`, handles the low-level communication with the backend authentication API.
+-   **Session Caching**: A global query with the key `['session']` is responsible for fetching and caching the user's session data. This is defined in `src/lib/auth-guard.ts` within `sessionQueryOptions`.
+-   **Authentication Actions**: Custom mutation hooks in `src/lib/auth-actions.ts` (e.g., `useSignInMutation`, `useSignUpMutation`) wrap `authClient` methods. They leverage TanStack Mutation to handle the entire lifecycle of an auth action—submitting data, updating cache on success, and handling errors.
+-   **Route Protection**: TanStack Router's `loader` functions are used to protect routes. The `protectedLoader` in `src/lib/auth-guard.ts` ensures that a valid session exists before rendering a protected route, redirecting to `/auth` if not.
+-   **Sign-Out**: The `useSignOutMutation` hook orchestrates the sign-out process. It calls the auth client, and upon success, immediately clears the `['session']` from the query cache for a snappy UI update before redirecting the user.
+
+This setup decouples UI components like `src/routes/auth.tsx` and `src/components/nav-user.tsx` from the underlying API logic, allowing them to simply use these dedicated hooks and the `['session']` query to manage and display authentication state.
 
 ### OAuth Callback Handling in Development
 
 > [!NOTE]
-> **OAuth Callback**
-> When using a Single-Page Application (SPA) framework like SolidJS with Cloudflare Workers and the Cloudflare Vite plugin, a specific challenge arises with OAuth callbacks (e.g., from Google Sign-In) in the local development environment.
-
-**The Problem:**
-
-Cloudflare's SPA configuration (`"not_found_handling": "single-page-application"`) is designed to serve your `index.html` for any "navigation" request that doesn't match a static file. An OAuth redirect from a provider like Google is a navigation request.
-
-In development, this means the Vite server, mimicking production behavior, intercepts the callback to `/api/auth/callback/google` and serves the main SolidJS application instead of passing the request to your backend Hono worker. This prevents the authentication code from being processed, so no session is created.
+> **The OAuth SPA Problem**
+> When using a Single-Page Application (SPA) framework like SolidJS with Cloudflare Pages and the Vite plugin, a specific challenge arises with OAuth callbacks (e.g., from Google Sign-In) in the local development environment. Cloudflare's SPA routing intercepts the callback (e.g., to `/api/auth/callback/google`) and serves the `index.html` instead of passing the request to your backend Hono worker. This prevents the server-side authentication from completing.
 
 **The Solution:**
 
 The solution is to embrace this SPA behavior by creating a dedicated client-side route to handle the callback.
 
-1.  **Create a specific route** in your client-side router (e.g., TanStack Router) that matches the callback path, such as `/api/auth/callback/google`.
+1.  **Create a specific route** in your client-side router (e.g., TanStack Router) that matches the callback path.
 2.  **The component for this route** has a single responsibility: to immediately make a `fetch` request to the *exact same URL* it's currently on (`window.location.href`).
-3.  **This `fetch` request is the key.** Unlike the initial redirect, a `fetch` is an API request, not a navigation request. The Vite server and the Cloudflare plugin correctly route this `fetch` request to your backend Hono worker.
+3.  **This `fetch` request is the key.** Unlike the initial browser navigation, a `fetch` is an API request. The Vite server and the Cloudflare plugin correctly route this `fetch` request to your backend Hono worker.
 4.  The backend worker then processes the OAuth code, creates a session, and responds to the `fetch` call.
 5.  Upon receiving a successful response, the component uses the client-side router's `navigate` function to redirect the user to their intended destination (e.g., `/dashboard`).
 
 This approach creates a seamless "shim" within your client application that correctly bridges the OAuth redirect and your backend API, working in harmony with the SPA development server.
-
-
-## Secrets & Environment Variables
-[Cloudflare Wrangler: Managing Secrets](https://developers.cloudflare.com/workers/wrangler/commands/#secret)
-
-### Development
-
-- Store all local environment variables and secrets in a `.dev.vars` file at the project root.
->[!WARNING]
-> **Never commit `.dev.vars` to version control.**  
-> Double-check that `.dev.vars` is listed in your `.gitignore` to prevent accidental leaks.
-
-### Production
-
-- For sensitive values (API keys, secrets, etc.), use the Wrangler CLI to securely add them to your Cloudflare Worker environment:
-  ```bash
-  wrangler secret put <SECRET_NAME>
-  ```
-- These secrets are never stored in your repository and are only accessible to your deployed Worker.
