@@ -13,6 +13,12 @@
 > - `GOOGLE_CLIENT_ID`
 > - `GOOGLE_CLIENT_SECRET`
 
+> [!WARNING]
+> The deploy button **does not** run database migrations. After your first deployment, you must manually apply the initial schema to your new production D1 database. Run the following command, replacing `<YOUR_DB_NAME>` with the name of your database:
+> ```bash
+> bunx wrangler d1 migrations apply <YOUR_DB_NAME> --remote
+> ```
+
 A comprehensive template for building modern web applications using SolidJS on the frontend and a Cloudflare-powered backend. This template integrates Better Auth for authentication, Cloudflare D1 for database storage, Cloudflare Workers for serverless APIs, and Cloudflare KV for session management.
 
 The template uses [Vite](https://vitejs.dev/), [Solid-js](https://www.solidjs.com/), [Tanstack Solid Router](https://tanstack.com/router/v1/docs/adapters/solid-router), [Better-auth](https://better-auth.dev/), [Cloudflare Vite Plugin](https://developers.cloudflare.com/workers/vite-plugin/) and [Cloudflare](https://www.cloudflare.com/).
