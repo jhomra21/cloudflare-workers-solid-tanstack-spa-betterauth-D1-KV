@@ -146,7 +146,7 @@ The deploy button creates your D1 database, but it doesn't create the necessary 
 
 This is the easiest way to set up your database schema.
 
-1.  First, you need the SQL commands. Go to the migration file in the project's GitHub repository: [`migrations/0000_initial.sql`](https://github.com/jhomra21/cloudflare-workers-solid-tanstack-spa-betterauth-D1-KV/blob/main/migrations/0000_initial.sql).
+1.  First, you need the SQL commands. Go to the migration file in the project's GitHub repository: [`migrations/0000_initial.sql`](https://github.com/jhomra21/cloudflare-workers-solid-tanstack-spa-betterauth-D1-KV/blob/master/migrations/0000_initial.sql).
 2.  Copy the entire content of that file.
 3.  In your Cloudflare Dashboard, navigate to **D1** from the left-hand menu.
 4.  Select the database that was created for your project. It will likely have a name similar to your project name.
