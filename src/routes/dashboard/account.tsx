@@ -71,6 +71,7 @@ function AccountPage() {
 
 	return (
 		<div class="container mx-auto max-w-4xl py-8 px-4">
+			You can edit this page at <span class="font-mono text-base bg-muted px-1 rounded-md">/routes/dashboard/account.tsx</span>
 			<div class="mb-8">
 				<h1 class="text-3xl font-bold tracking-tight">Account</h1>
 				<p class="text-muted-foreground mt-1">Manage your account and profile settings.</p>

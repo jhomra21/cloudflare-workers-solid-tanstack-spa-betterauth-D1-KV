@@ -65,12 +65,8 @@ app.use('/api/*', async (c, next) => {
 
 app.get('/api/', (c) => {
   return c.json({
-    name: 'Cloudflare Workers',
+    name: 'Hono + Cloudflare Workers',
   });
-});
-
-app.get('/api/hello', (c) => {
-  return c.text('Hello from Hono API!');
 });
 
 app.all('/api/auth/*', (c) => {

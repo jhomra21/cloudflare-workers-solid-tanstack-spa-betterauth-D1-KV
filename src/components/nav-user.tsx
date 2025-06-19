@@ -10,12 +10,12 @@ import { Show, createMemo } from "solid-js"
 import { Link, useNavigate } from "@tanstack/solid-router"
 import { useQuery } from "@tanstack/solid-query"
 import { sessionQueryOptions } from "~/lib/auth-guard"
-import { useSignOut } from "~/lib/auth-actions"
+import { useSignOutMutation } from "~/lib/auth-actions"
 
 export const NavUser: Component = () => {
   const { isMobile, state, setOpenMobile } = useSidebar()
   const navigate = useNavigate()
-  const signOut = useSignOut();
+  const signOutMutation = useSignOutMutation();
   
   // // Get user data from auth context
   // const user = createMemo(() => context()?.session?.user);
@@ -38,7 +38,7 @@ export const NavUser: Component = () => {
   const isSidebarCollapsed = createMemo(() => state() === "collapsed");
   
   const handleSignOut = async () => {
-    await signOut();
+    await signOutMutation.mutate();
     if (isMobile()) {
       setOpenMobile(false);
     }

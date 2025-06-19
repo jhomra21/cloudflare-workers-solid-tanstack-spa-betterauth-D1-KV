@@ -1,23 +1,80 @@
-import { useQueryClient } from '@tanstack/solid-query';
+import { useQueryClient, useMutation } from '@tanstack/solid-query';
 import { useNavigate } from '@tanstack/solid-router';
 import { authClient } from './auth-client';
 
-/**
- * A custom hook that provides a centralized sign-out function.
- * It handles signing out the user via the auth client, clearing the
- * session from the TanStack Query cache, and navigating to the home page.
- */
-export function useSignOut() {
+type SignInCredentials = {
+  email: string;
+  password: string;
+};
+
+type SignUpCredentials = {
+  email: string;
+  password: string;
+  name?: string;
+};
+
+const handleSuccess = (queryClient: ReturnType<typeof useQueryClient>, navigate: ReturnType<typeof useNavigate>) => {
+  queryClient.invalidateQueries({ queryKey: ['session'] });
+  navigate({ to: '/dashboard' });
+};
+
+export function useSignInMutation() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const signOut = async () => {
-    await authClient.signOut();
-    // Manually and synchronously update the cache to reflect the logged-out state.
-    queryClient.setQueryData(['session'], null);
-    // Navigate back to the home page.
-    navigate({ to: '/' });
-  };
+  return useMutation(() => ({
+    mutationFn: async (credentials: SignInCredentials) => {
+      const { data, error } = await authClient.signIn.email(credentials);
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => handleSuccess(queryClient, navigate),
+  }));
+}
 
-  return signOut;
+export function useSignUpMutation() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation(() => ({
+    mutationFn: async (credentials: SignUpCredentials) => {
+      const { data, error } = await authClient.signUp.email({
+        ...credentials,
+        name: credentials.name || credentials.email.split('@')[0],
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => handleSuccess(queryClient, navigate),
+  }));
+}
+
+export function useGoogleSignInMutation() {
+    return useMutation(() => ({
+        mutationFn: () => authClient.signIn.social({ provider: 'google' }),
+    }));
+}
+
+/**
+ * A mutation hook that provides a centralized sign-out function.
+ * It handles signing out the user via the auth client, clearing the
+ * session from the TanStack Query cache, and navigating to the auth page.
+ */
+export function useSignOutMutation() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation(() => ({
+    mutationFn: () => authClient.signOut(),
+    onSuccess: () => {
+      // Manually and synchronously update the cache to reflect the logged-out state.
+      queryClient.setQueryData(['session'], null);
+      // Navigate to the auth page after sign out.
+      navigate({ to: '/' });
+    },
+    onError: (error: Error) => {
+      // In a real app, you might use a more robust notification system.
+      alert(`Sign out failed: ${error.message}`);
+    },
+  }));
 } 

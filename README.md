@@ -41,6 +41,64 @@ User authentication state on the client is managed by TanStack Query, providing 
 
 This setup decouples the UI components from the authentication logic, allowing components to simply use the data from the `['session']` query to render user-specific content.
 
+## Initial Cloudflare Setup
+[Cloudflare Wrangler D1 Commands Documentation](https://developers.cloudflare.com/workers/wrangler/commands/#d1)
+
+Before you can run migrations or start the application, you need to create a Cloudflare D1 database and a KV namespace. These will be used by `better-auth` to store user data and session information.
+
+### 1. Create the D1 Database
+
+Run the following command to create your D1 database. Replace `<YOUR_DB_NAME>` with a name of your choice (e.g., `my-app-db`).
+
+```bash
+wrangler d1 create <YOUR_DB_NAME>
+```
+
+Cloudflare will return a configuration block. Copy this and add it to the `d1_databases` array in your `wrangler.jsonc` file. It will look like this:
+
+```jsonc
+// wrangler.jsonc
+{
+  // ... other configurations
+  "d1_databases": [
+    {
+      "binding": "DB", 
+      "database_name": "<YOUR_DB_NAME>",
+      "database_id": "<your-database-id>"
+    }
+  ]
+}
+```
+
+> [!IMPORTANT]
+> The `binding` name must be `"DB"` as this is what the application code expects.
+
+### 2. Create the KV Namespace
+
+Run the following command to create the KV namespace for session storage.
+
+```bash
+wrangler kv namespace create "SESSION_KV"
+```
+
+This command will also return a configuration block. Add it to the `kv_namespaces` array in `wrangler.jsonc`.
+
+```jsonc
+// wrangler.jsonc
+{
+  // ... other configurations
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS", 
+      "id": "<your-namespace-id>",
+      "preview_id": "<your-namespace-preview-id>"
+    }
+  ]
+}
+```
+> [!IMPORTANT]
+> The `binding` name must be `"SESSIONS"` as this is what the application code expects.
+
 ## 🛠 Tech Stack
 
 ### **Backend**
@@ -77,13 +135,14 @@ Run the following command in your terminal:
 wrangler d1 migrations apply <D1 database_name> --local
 ```
 This ensures your local database schema is in sync with the application's requirements. 
+
 For remote databases, you would use the `--remote` flag instead, like this:
 ```bash
 wrangler d1 migrations apply <D1 database_name> --remote
 ```
 
 ### Workflow for DB Changes
-
+For any new migrations, besides the one included which is for better-auth
 1.  **Create a New Migration File**:
     -   In the `migrations` directory, create a new SQL file.
     -   The filename must start with a number that is higher than the previous one (e.g., `migrations/0001_add_new_field.sql`).
@@ -93,8 +152,11 @@ wrangler d1 migrations apply <D1 database_name> --remote
     -   Example: `ALTER TABLE "user" ADD COLUMN bio TEXT;`
 
 3.  **Apply the Migration**:
-    -   Run the following command in your terminal. Wrangler is smart enough to only apply new, unapplied migrations.
-    -   `wrangler d1 migrations apply <YOUR_DB_NAME> --remote`
+    -   Run the following command in your terminal. Wrangler is smart enough to only apply new, unapplied migrations
+    - ```bash
+        wrangler d1 migrations apply <YOUR_DB_NAME> [--remote or --local] //Choose where to run migrations, development or production DB
+        ```
+     
 
 ## Environment Variables & Secrets
 
@@ -131,3 +193,22 @@ The solution is to embrace this SPA behavior by creating a dedicated client-side
 5.  Upon receiving a successful response, the component uses the client-side router's `navigate` function to redirect the user to their intended destination (e.g., `/dashboard`).
 
 This approach creates a seamless "shim" within your client application that correctly bridges the OAuth redirect and your backend API, working in harmony with the SPA development server.
+
+
+## Secrets & Environment Variables
+[Cloudflare Wrangler: Managing Secrets](https://developers.cloudflare.com/workers/wrangler/commands/#secret)
+
+### Development
+
+- Store all local environment variables and secrets in a `.dev.vars` file at the project root.
+>[!WARNING]
+> **Never commit `.dev.vars` to version control.**  
+> Double-check that `.dev.vars` is listed in your `.gitignore` to prevent accidental leaks.
+
+### Production
+
+- For sensitive values (API keys, secrets, etc.), use the Wrangler CLI to securely add them to your Cloudflare Worker environment:
+  ```bash
+  wrangler secret put <SECRET_NAME>
+  ```
+- These secrets are never stored in your repository and are only accessible to your deployed Worker.

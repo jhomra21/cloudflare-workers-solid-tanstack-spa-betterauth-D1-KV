@@ -1,15 +1,27 @@
 import { createFileRoute, Link, useRouteContext } from '@tanstack/solid-router';
-import { For, createMemo, children } from 'solid-js';
+import { For, createMemo, children, Show } from 'solid-js';
+import { useMutation } from '@tanstack/solid-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import Footer from '~/components/Footer';
-import { useSignOut } from '~/lib/auth-actions';
+import { useSignOutMutation } from '~/lib/auth-actions';
+import { Spinner } from '../auth';
 
 
 export function DashboardIndex() {
   const context = useRouteContext({ from: '/dashboard' });
   const user = createMemo(() => context()?.session?.user);
-  const signOut = useSignOut();
+  const signOutMutation = useSignOutMutation();
+
+  const testApiMutation = useMutation(() => ({
+    mutationFn: async () => {
+      const response = await fetch('/api/');
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
+      return response.json();
+    },
+  }));
 
   const dashboardItems = [
     {
@@ -18,14 +30,16 @@ export function DashboardIndex() {
       icon: '🗄️',
       path: '/dashboard/account',
       color: 'border-green-200 dark:border-green-800'
-    },
-    {
-      title: 'Tasks',
-      description: 'Track and manage your tasks',
-      icon: '✅',
-      path: '/dashboard/tasks',
-      color: 'border-purple-200 dark:border-purple-800'
     }
+    // to add more items here, follow the format below
+    //,
+    //{
+    //  title: 'item',
+    //  description: 'item',
+    //  icon: '✅',
+    //  path: '/dashboard/item',
+    //  color: 'border-purple-200 dark:border-purple-800'
+    //}
   ];
 
   const renderCard = (item: typeof dashboardItems[0]) => {
@@ -70,17 +84,50 @@ export function DashboardIndex() {
         <div class="mb-10">
           <h1 class="text-2xl font-semibold mb-2">Welcome, {user()?.name || 'User'}</h1>
           <p class="text-muted-foreground text-sm">
-            This is a demo of a dashboard with a few different sections.
+            Welcome to the dashboard. You can edit this page at <span class="font-mono text-base bg-muted px-1 rounded-md">/routes/dashboard/index.tsx</span>
           </p>
         </div>
         <div class="mb-10">
-          <Button variant="sf-compute" onClick={async () => {
-            const response = await fetch('/api/')
-            const data = await response.json()
-            console.log(data)
-          }}>
-            Test API
+          <Button 
+            variant="sf-compute" 
+            onClick={() => testApiMutation.mutate()}
+            disabled={testApiMutation.isPending}
+          >
+            <Show when={testApiMutation.isPending} fallback={'Test API'}>
+              <Spinner class="mr-2" />
+              Loading...
+            </Show>
           </Button>
+          
+          <div 
+            class="mt-4 transition-all duration-300 ease-in-out overflow-hidden relative" 
+            style={{ 
+              opacity: testApiMutation.isSuccess || testApiMutation.isError ? '1' : '0',
+              "max-height": testApiMutation.isSuccess || testApiMutation.isError ? '300px' : '0',
+              "margin-top": testApiMutation.isSuccess || testApiMutation.isError ? '16px' : '0'
+            }}
+          >
+            <div class="bg-muted p-4 rounded-md text-sm relative">
+              <button 
+                onClick={() => testApiMutation.reset()} 
+                class="absolute top-2 right-2 h-6 w-6 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6L18 18"></path>
+                </svg>
+              </button>
+              <pre class="overflow-auto max-h-60">
+                <Show when={testApiMutation.isSuccess}>
+                  {JSON.stringify(testApiMutation.data, null, 2)}
+                </Show>
+                <Show when={testApiMutation.isError}>
+                  {testApiMutation.error?.message}
+                </Show>
+              </pre>
+            </div>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -100,17 +147,28 @@ export function DashboardIndex() {
             <ul class="space-y-2 text-sm text-muted-foreground">
               <li class="flex items-center gap-2">
                 <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
-                Better-auth with Drizzle ORM and D1 Cloudflare for authentication
+                SolidJS and Tanstack Router for reactive UI
               </li>
               <li class="flex items-center gap-2">
                 <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
-                SolidJS and Tanstack Router for reactive UI
+                Better-auth with Cloudflare D1 and KV for authentication
               </li>
+              <li class="flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
+                Single Worker for Server and Client using Cloudflare Vite Plugin
+              </li>  
+              <li class="flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
+                Shadcn components converted to SolidJS [<a href="https://www.solid-ui.com/" class="text-blue-500">solid-ui</a>, <a href="https://shadcn-solid.com/" class="text-blue-500">shadcn-solid</a>]
+              </li>  
             </ul>
           </CardContent>
           <CardFooter>
-            <Button variant="sf-compute" onClick={signOut}>
-              Logout
+            <Button variant="sf-compute" onClick={() => signOutMutation.mutate()} disabled={signOutMutation.isPending}>
+              <Show when={signOutMutation.isPending}><Spinner class="mr-2" /></Show>
+              <Show when={!signOutMutation.isPending}>
+                Logout
+              </Show>
             </Button>
           </CardFooter>
         </Card>
