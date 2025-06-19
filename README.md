@@ -80,10 +80,17 @@ This command will also return a configuration block. Add it to the `kv_namespace
 [Cloudflare Wrangler: Managing Secrets](https://developers.cloudflare.com/workers/wrangler/commands/#secret)
 
 #### Local Development
+
+This project includes an `example.dev.vars` file to show what environment variables are needed. To set up your local environment:
+
+1.  Rename `example.dev.vars` to `.dev.vars`.
+2.  Fill in the required secret values in your new `.dev.vars` file. The file is already ignored by git to prevent accidental secret leaks.
+
 > [!WARNING]
 > **Never commit `.dev.vars` to version control.**  
 > Double-check that `.dev.vars` is listed in your `.gitignore` to prevent accidental leaks.
-Store all local environment variables and secrets in a `.dev.vars` file at the project root.
+
+Wrangler automatically loads variables from `.dev.vars` when running the development server.
 
 #### Production
 For sensitive values (API keys, secrets, etc.), use the Wrangler CLI to securely add them to your Cloudflare Worker environment. These secrets are never stored in your repository and are only accessible to your deployed Worker.
