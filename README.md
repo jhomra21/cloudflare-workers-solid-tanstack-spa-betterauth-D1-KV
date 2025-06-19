@@ -12,7 +12,7 @@ The template uses [Vite](https://vitejs.dev/), [Solid-js](https://www.solidjs.co
 - **Cloudflare KV**: Used for fast session validation at the edge.
 
 ### 🏗️ **Modern Architecture**
-- **SolidJS Frontend**: Reactive UI with TanStack Router for file-based routing and TanStack Query for server state management.
+- **SolidJS Frontend**: Reactive UI with TanStack Router for file-based routing and TanStack Query for query management.
 - **Hono.js API**: Lightweight, fast API layer running on Cloudflare Workers.
 - **Cloudflare Stack**: Leverages Cloudflare Vite Plugin, D1, KV, Workers for a scalable and performant infrastructure.
 
