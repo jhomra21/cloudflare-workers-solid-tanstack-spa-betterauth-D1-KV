@@ -8,6 +8,7 @@
 > [!NOTE]
 > Using the deploy button will get your project running, but you must add secrets for full authentication features to work. In your Cloudflare dashboard, navigate to your new worker's **Settings > Variables** and add the following as ** secrets **:
 > - `BETTER_AUTH_SECRET`
+>
 > If you have [Google Cloud](https://console.cloud.google.com/apis/credentials) account set up 
 > - `GOOGLE_CLIENT_ID`
 > - `GOOGLE_CLIENT_SECRET`
