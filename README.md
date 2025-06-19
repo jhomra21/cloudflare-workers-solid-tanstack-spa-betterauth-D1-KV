@@ -9,6 +9,8 @@
 > Using the deploy button will get your project running, but you must add secrets for full authentication features to work. In your Cloudflare dashboard, navigate to your new worker's **Settings > Variables** and add the following as ** secrets **:
 > - `BETTER_AUTH_SECRET`
 >
+> For Google Sign-In, you will also need to provide a `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. See the [**Google OAuth Setup Guide**](#setting-up-google-oauth-credentials) below for instructions on how to get these.
+>
 > If you have [Google Cloud](https://console.cloud.google.com/apis/credentials) account set up 
 > - `GOOGLE_CLIENT_ID`
 > - `GOOGLE_CLIENT_SECRET`
@@ -204,3 +206,34 @@ The solution is to embrace this SPA behavior by creating a dedicated client-side
 5.  Upon receiving a successful response, the component uses the client-side router's `navigate` function to redirect the user to their intended destination (e.g., `/dashboard`).
 
 This approach creates a seamless "shim" within your client application that correctly bridges the OAuth redirect and your backend API, working in harmony with the SPA development server.
+
+## Setting up Google OAuth Credentials
+
+To enable Google Sign-In for your application, you need to create OAuth 2.0 credentials in the Google Cloud Console. Follow these steps to get your Client ID and Client Secret.
+
+1.  Navigate to the [APIs & Services > Credentials](https://console.cloud.google.com/apis/credentials) page in your Google Cloud project. Click on **+ Create credentials**.
+    ![Create Credentials](readme_assets/google-Oauth-create-credentials.png)
+
+2.  From the dropdown menu, select **OAuth client ID**. For the **Application type**, choose **Web application**.
+    ![Select OAuth client ID](readme_assets/google-Oauth-create-credentials-Oauth-client-id.png)
+
+3.  Configure your OAuth client ID:
+    *   Give it a descriptive **Name** (e.g., "Cloudflare Worker Auth").
+    *   Under **Authorized redirect URIs**, you must add the callback URLs for both your local development environment and your deployed application.
+        *   For local development: `http://localhost:3000/api/auth/callback/google`
+        *   For production: `https://<YOUR_WORKER_URL>/api/auth/callback/google` (replace `<YOUR_WORKER_URL>` with your actual worker's URL).
+    ![Configure Redirect URIs](readme_assets/google-Oauth-authorized-redirect-url.png)
+
+4.  Click **Save**. Google will provide you with a **Client ID** and a **Client Secret**.
+
+5.  You must add these values as secrets for your project:
+    *   For local development, add them to your `.dev.vars` file:
+        ```
+        GOOGLE_CLIENT_ID=...
+        GOOGLE_CLIENT_SECRET=...
+        ```
+    *   For production, add them as secrets using the Wrangler CLI or the Cloudflare dashboard:
+        ```bash
+        bunx wrangler secret put GOOGLE_CLIENT_ID
+        bunx wrangler secret put GOOGLE_CLIENT_SECRET
+        ```
