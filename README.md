@@ -202,6 +202,9 @@ To enable Google Sign-In for your application, you need to create OAuth 2.0 cred
 
 5.  You must add these values as secrets for your project, either in your `.dev.vars` file for local development or in the Cloudflare Dashboard for production.
 
+> [!NOTE]
+> **After adding new environment vars or secrets, you must redeploy your worker. Either via dashboard or git**
+
 ---
 
 ## 🔧 Technical Deep Dive
