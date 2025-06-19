@@ -97,32 +97,20 @@ Your application requires secrets and environment variables to function.
     cp example.dev.vars .dev.vars
     ```
 
-2.  **Generate `BETTER_AUTH_SECRET`**: 
-    *   Navigate to the [Better Auth documentation](https://www.better-auth.com/docs/installation#set-environment-variables) and use their generator.
-        ![Generate Secret Button](readme_assets/better-auth-secret.png)
-    *   Copy the generated secret and paste it into `.dev.vars`.
-        ![Generated Secret](readme_assets/better-auth-secret-generated.png)
+2.  **Generate `BETTER_AUTH_SECRET`**: See the [**`BETTER_AUTH_SECRET` Generation Guide**](#-better-auth-secret) below for instructions. Once you have the secret, paste it into your `.dev.vars` file.
 
-3.  **Add Google Credentials**: Paste your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` into `.dev.vars`. See the [Google OAuth Setup Guide](#-setting-up-google-oauth-credentials) if you need them.
+3.  **Add Google Credentials**: See the [**Google OAuth Credentials Guide**](#-google-oauth-credentials) below to get your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then paste them into `.dev.vars`.
 
 > [!WARNING]
 > **Never commit `.dev.vars` to version control.** The file is already listed in `.gitignore`.
 
 #### Production (Cloudflare)
 
-1.  **Set Secrets**: Add secrets to your production environment using Wrangler.
+1.  **Set Secrets**: You will need values for `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET`. See the [**Generating Credentials**](#-generating-credentials) section below for instructions on how to get these. Then, add them to Cloudflare using Wrangler:
     ```bash
     bunx wrangler secret put BETTER_AUTH_SECRET
     bunx wrangler secret put GOOGLE_CLIENT_ID
     bunx wrangler secret put GOOGLE_CLIENT_SECRET
-    ```
-
-2.  **Set `BETTER_AUTH_URL`**: Update this variable in your `wrangler.jsonc` file to your deployed worker's URL.
-    ```jsonc
-    // wrangler.jsonc
-    "vars": {
-      "BETTER_AUTH_URL": "https://<your-worker-name>.<your-account>.workers.dev"
-    }
     ```
 
 ---
@@ -144,10 +132,10 @@ Your app needs secret keys for authentication and a URL to point to itself. You 
     > [!IMPORTANT]
     > Make sure to save as 'Secret' and not 'Text' for these:
     *   `BETTER_AUTH_SECRET`: 
-        *   **Value**: Go to the [Better Auth docs](https://www.better-auth.com/docs/installation#set-environment-variables) to generate a secret, then paste it here.
+        *   **Value**: Follow the [**`BETTER_AUTH_SECRET` Generation Guide**](#-better-auth-secret) below to generate a secret, then paste it here.
         *   Click the **Encrypt** button to keep it secure.
     *   `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`:
-        *   **Value**: Paste the credentials you got from the [Google OAuth setup guide](#-setting-up-google-oauth-credentials).
+        *   **Value**: Follow the [**Google OAuth Credentials Guide**](#-google-oauth-credentials) below to get your credentials, then paste them here.
         *   Click **Encrypt** for both of these as well.
 
 ### Step 2: Run the Database Migration
@@ -177,6 +165,42 @@ If you're comfortable with the command line:
     ```
 
 **Your application should now be fully configured and ready to use!**
+
+---
+
+## 🔑 Generating Credentials
+
+This section details how to get the required secrets for the application to run.
+
+### Better Auth Secret
+
+This is a random, secret key used by the `better-auth` library for encryption.
+
+1.  Navigate to the [Better Auth documentation](https://www.better-auth.com/docs/installation#set-environment-variables) and use their built-in generator.
+    ![Generate Secret Button](readme_assets/better-auth-secret.png)
+2.  Copy the generated secret.
+    ![Generated Secret](readme_assets/better-auth-secret-generated.png)
+
+### Google OAuth Credentials
+
+To enable Google Sign-In for your application, you need to create OAuth 2.0 credentials in the Google Cloud Console. Follow these steps to get your Client ID and Client Secret.
+
+1.  Navigate to the [APIs & Services > Credentials](https://console.cloud.google.com/apis/credentials) page in your Google Cloud project. Click on **+ Create credentials**.
+    ![Create Credentials](readme_assets/google-Oauth-create-credentials.png)
+
+2.  From the dropdown menu, select **OAuth client ID**. For the **Application type**, choose **Web application**.
+    ![Select OAuth client ID](readme_assets/google-Oauth-create-credentials-Oauth-client-id.png)
+
+3.  Configure your OAuth client ID:
+    *   Give it a descriptive **Name** (e.g., "Cloudflare Worker Auth").
+    *   Under **Authorized redirect URIs**, you must add the callback URLs for both your local development environment and your deployed application.
+        *   For local development: `http://localhost:3000/api/auth/callback/google`
+        *   For production: `https://<YOUR_WORKER_URL>/api/auth/callback/google` (replace `<YOUR_WORKER_URL>` with your actual worker's URL).
+    ![Configure Redirect URIs](readme_assets/google-Oauth-authorized-redirect-url.png)
+
+4.  Click **Save**. Google will provide you with a **Client ID** and a **Client Secret**.
+
+5.  You must add these values as secrets for your project, either in your `.dev.vars` file for local development or in the Cloudflare Dashboard for production.
 
 ---
 
@@ -239,14 +263,4 @@ To enable Google Sign-In for your application, you need to create OAuth 2.0 cred
 
 4.  Click **Save**. Google will provide you with a **Client ID** and a **Client Secret**.
 
-5.  You must add these values as secrets for your project:
-    *   For local development, add them to your `.dev.vars` file:
-        ```
-        GOOGLE_CLIENT_ID=...
-        GOOGLE_CLIENT_SECRET=...
-        ```
-    *   For production, add them as secrets using the Wrangler CLI or the Cloudflare dashboard:
-        ```bash
-        bunx wrangler secret put GOOGLE_CLIENT_ID
-        bunx wrangler secret put GOOGLE_CLIENT_SECRET
-        ```
+5.  You must add these values as secrets for your project, either in your `.dev.vars` file for local development or in the Cloudflare Dashboard for production.
