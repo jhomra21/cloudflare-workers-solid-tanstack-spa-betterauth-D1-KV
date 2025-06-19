@@ -5,6 +5,13 @@
 > After deploying, you **must** update the `BETTER_AUTH_URL` variable in the `[vars]` section of your `wrangler.jsonc` file to your deployed worker's public URL and then push to git or deploy the worker again. 
 > This ensures that authentication callbacks and other auth features work correctly in the production environment.
 
+> [!NOTE]
+> Using the deploy button will get your project running, but you must add secrets for full authentication features to work. In your Cloudflare dashboard, navigate to your new worker's **Settings > Variables** and add the following as ** secrets **:
+> - `BETTER_AUTH_SECRET`
+> If you have [Google Cloud](https://console.cloud.google.com/apis/credentials) account set up 
+> - `GOOGLE_CLIENT_ID`
+> - `GOOGLE_CLIENT_SECRET`
+
 A comprehensive template for building modern web applications using SolidJS on the frontend and a Cloudflare-powered backend. This template integrates Better Auth for authentication, Cloudflare D1 for database storage, Cloudflare Workers for serverless APIs, and Cloudflare KV for session management.
 
 The template uses [Vite](https://vitejs.dev/), [Solid-js](https://www.solidjs.com/), [Tanstack Solid Router](https://tanstack.com/router/v1/docs/adapters/solid-router), [Better-auth](https://better-auth.dev/), [Cloudflare Vite Plugin](https://developers.cloudflare.com/workers/vite-plugin/) and [Cloudflare](https://www.cloudflare.com/).
