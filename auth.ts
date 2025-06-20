@@ -15,8 +15,9 @@ const hashPassword = (password: string): Promise<string> => {
     return new Promise((resolve, reject) => {
         const salt = randomBytes(16).toString("hex");
         // N: 16384 is the recommended cost factor for scrypt.
-        // This can be tuned down if performance is an issue, but 8 is too low.
-        scrypt(password, salt, 64, { N: 16384 }, (err, derivedKey) => {
+        // This is too high for CF workers free plan.
+        // We are tuning it down to 4096 to avoid CPU limits.
+        scrypt(password, salt, 64, { N: 4096 }, (err, derivedKey) => {
             if (err) reject(err);
             else resolve(`${salt}:${derivedKey.toString("hex")}`);
         });
@@ -30,7 +31,7 @@ const verifyPassword = (hashedPassword: string, password: string): Promise<boole
             return resolve(false);
         }
         const keyBuffer = Buffer.from(key, "hex");
-        scrypt(password, salt, 64, { N: 16384 }, (err, derivedKey) => {
+        scrypt(password, salt, 64, { N: 4096 }, (err, derivedKey) => {
             if (err) {
                 return resolve(false);
             }
