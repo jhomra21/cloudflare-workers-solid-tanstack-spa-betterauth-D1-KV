@@ -233,6 +233,12 @@ User authentication state on the client is managed by TanStack Query, providing 
 
 This setup decouples UI components like `src/routes/auth.tsx` and `src/components/nav-user.tsx` from the underlying API logic, allowing them to simply use these dedicated hooks and the `['session']` query to manage and display authentication state.
 
+### Custom Authentication Hashing for Cloudflare Workers
+
+A critical consideration when deploying to Cloudflare Workers, especially on the free plan, is CPU time limitations. The default password hashing and verification functions provided by `better-auth` are computationally intensive by design to maximize security. However, this can lead to exceeding the CPU time limits on the free tier, resulting in `503` errors during sign-up or sign-in.
+
+To mitigate this, this template provides custom `hashPassword` and `verifyPassword` functions within `auth.ts`. These functions use `scrypt` from `node:crypto` with parameters tuned to provide compatibility and security while remaining within the CPU constraints of the Cloudflare Workers free plan. This ensures that email and password authentication remains reliable without causing server timeouts.
+
 ### OAuth Callback Handling in Development
 
 > [!NOTE]
