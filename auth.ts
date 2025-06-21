@@ -91,19 +91,11 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
     }
 };
 
-// Cache betterAuth instance to avoid recreating on every request
-let authInstance: ReturnType<typeof betterAuth> | null = null;
-let lastEnvHash: string | null = null;
-
 export const getAuth = (env: Env) => {
-    // Create a simple hash of env properties to detect changes
-    const envHash = `${env.BETTER_AUTH_SECRET}-${env.GOOGLE_CLIENT_ID}`;
-    
-    if (!authInstance || lastEnvHash !== envHash) {
-        authInstance = betterAuth({
+    return betterAuth({
         secret: env.BETTER_AUTH_SECRET,
         database: {
-            dialect: new D1Dialect({ database: env.DB }), // Fresh D1Dialect each time
+            dialect: new D1Dialect({ database: env.DB }),
             type: "sqlite"
         },
         secondaryStorage: {
@@ -132,9 +124,5 @@ export const getAuth = (env: Env) => {
                 clientSecret: env.GOOGLE_CLIENT_SECRET,
             }
         }
-        });
-        lastEnvHash = envHash;
-    }
-    
-    return authInstance;
+    });
 };
