@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
 import { D1Dialect } from "kysely-d1";
 import type { D1Database, KVNamespace } from "@cloudflare/workers-types";
-import { scrypt, randomBytes, timingSafeEqual } from "node:crypto";
 
 type Env = {
     DB: D1Database;
@@ -11,36 +10,85 @@ type Env = {
     GOOGLE_CLIENT_SECRET: string;
 }
 
-const hashPassword = (password: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const salt = randomBytes(16).toString("hex");
-        // N: 16384 is the recommended cost factor for scrypt.
-        // This is too high for CF workers free plan.
-        // We are tuning it down to 1024 to avoid CPU limits.
-        scrypt(password, salt, 64, { N: 1024 }, (err, derivedKey) => {
-            if (err) reject(err);
-            else resolve(`${salt}:${derivedKey.toString("hex")}`);
-        });
-    });
+const hashPassword = async (password: string): Promise<string> => {
+    // Use WebCrypto PBKDF2 - native in Cloudflare Workers, ~1-2ms CPU
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const passwordBuffer = new TextEncoder().encode(password);
+    
+    const key = await crypto.subtle.importKey(
+        'raw',
+        passwordBuffer,
+        'PBKDF2',
+        false,
+        ['deriveBits']
+    );
+    
+    const derivedBits = await crypto.subtle.deriveBits(
+        {
+            name: 'PBKDF2',
+            salt: salt,
+            iterations: 100000, // 100k iterations for good security
+            hash: 'SHA-256'
+        },
+        key,
+        256 // 32 bytes = 256 bits
+    );
+    
+    // Convert to hex strings for storage
+    const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+    const keyHex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    return `${saltHex}:${keyHex}`;
 };
 
-const verifyPassword = (hashedPassword: string, password: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-        const [salt, key] = hashedPassword.split(":");
-        if (!salt || !key) {
-            return resolve(false);
+const verifyPassword = async (hashedPassword: string, password: string): Promise<boolean> => {
+    try {
+        const [saltHex, keyHex] = hashedPassword.split(":");
+        if (!saltHex || !keyHex) {
+            return false;
         }
-        const keyBuffer = Buffer.from(key, "hex");
-        scrypt(password, salt, 64, { N: 1024 }, (err, derivedKey) => {
-            if (err) {
-                return resolve(false);
-            }
-            if (derivedKey.length !== keyBuffer.length) {
-                return resolve(false);
-            }
-            resolve(timingSafeEqual(derivedKey, keyBuffer));
-        });
-    });
+        
+        // Convert hex strings back to Uint8Arrays
+        const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map(byte => parseInt(byte, 16)));
+        const expectedKey = new Uint8Array(keyHex.match(/.{2}/g)!.map(byte => parseInt(byte, 16)));
+        
+        const passwordBuffer = new TextEncoder().encode(password);
+        
+        const key = await crypto.subtle.importKey(
+            'raw',
+            passwordBuffer,
+            'PBKDF2',
+            false,
+            ['deriveBits']
+        );
+        
+        const derivedBits = await crypto.subtle.deriveBits(
+            {
+                name: 'PBKDF2',
+                salt: salt,
+                iterations: 100000, // Same as hashing
+                hash: 'SHA-256'
+            },
+            key,
+            256
+        );
+        
+        const derivedKey = new Uint8Array(derivedBits);
+        
+        // Constant-time comparison
+        if (derivedKey.length !== expectedKey.length) {
+            return false;
+        }
+        
+        let result = 0;
+        for (let i = 0; i < derivedKey.length; i++) {
+            result |= derivedKey[i] ^ expectedKey[i];
+        }
+        
+        return result === 0;
+    } catch (error) {
+        return false;
+    }
 };
 
 export const getAuth = (env: Env) => {
