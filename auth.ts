@@ -91,11 +91,14 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
     }
 };
 
-// Simple module-level cache - survives for isolate lifetime
+// Simple module-level cache - only in production where env is stable
 let cachedAuth: ReturnType<typeof betterAuth> | null = null;
 
 export const getAuth = (env: Env) => {
-    if (!cachedAuth) {
+    // Only cache when DB is available and valid (skip in dev where DB might be unstable)
+    const shouldCache = env.DB && typeof env.DB.prepare === 'function';
+    
+    if (shouldCache && !cachedAuth) {
         cachedAuth = betterAuth({
         secret: env.BETTER_AUTH_SECRET,
         database: {
@@ -130,5 +133,44 @@ export const getAuth = (env: Env) => {
         }
         });
     }
-    return cachedAuth;
+    
+    // Return cached instance if available, otherwise create fresh
+    if (shouldCache && cachedAuth) {
+        return cachedAuth;
+    }
+    
+    // Development or when caching not possible - create fresh instance
+    return betterAuth({
+        secret: env.BETTER_AUTH_SECRET,
+        database: {
+            dialect: new D1Dialect({ database: env.DB }),
+            type: "sqlite"
+        },
+        secondaryStorage: {
+            get: async (key) => await env.SESSIONS.get(key),
+            set: async (key, value, ttl) => {
+                await env.SESSIONS.put(key, value, { expirationTtl: ttl });
+            },
+            delete: async (key) => await env.SESSIONS.delete(key),
+        },
+        emailAndPassword: { 
+            enabled: true,
+        },
+        password: {
+            hash: hashPassword,
+            verify: verifyPassword,
+        },
+        user: {
+            deleteUser: {
+                enabled: true
+            }
+        },
+        socialProviders: {
+            google: {
+                prompt: "select_account",
+                clientId: env.GOOGLE_CLIENT_ID,
+                clientSecret: env.GOOGLE_CLIENT_SECRET,
+            }
+        }
+    });
 };
