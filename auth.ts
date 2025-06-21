@@ -27,7 +27,7 @@ const hashPassword = async (password: string): Promise<string> => {
         {
             name: 'PBKDF2',
             salt: salt,
-            iterations: 100000, // 100k iterations for good security
+            iterations: 50000, // 50k iterations - balance security vs CPU limits
             hash: 'SHA-256'
         },
         key,
@@ -66,7 +66,7 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
             {
                 name: 'PBKDF2',
                 salt: salt,
-                iterations: 100000, // Same as hashing
+                iterations: 50000, // Same as hashing
                 hash: 'SHA-256'
             },
             key,
@@ -91,11 +91,19 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
     }
 };
 
+// Cache betterAuth instance to avoid recreating on every request
+let authInstance: ReturnType<typeof betterAuth> | null = null;
+let lastEnvHash: string | null = null;
+
 export const getAuth = (env: Env) => {
-    return betterAuth({
+    // Create a simple hash of env properties to detect changes
+    const envHash = `${env.BETTER_AUTH_SECRET}-${env.GOOGLE_CLIENT_ID}`;
+    
+    if (!authInstance || lastEnvHash !== envHash) {
+        authInstance = betterAuth({
         secret: env.BETTER_AUTH_SECRET,
         database: {
-            dialect: new D1Dialect({ database: env.DB }),
+            dialect: new D1Dialect({ database: env.DB }), // Fresh D1Dialect each time
             type: "sqlite"
         },
         secondaryStorage: {
@@ -124,5 +132,9 @@ export const getAuth = (env: Env) => {
                 clientSecret: env.GOOGLE_CLIENT_SECRET,
             }
         }
-    });
+        });
+        lastEnvHash = envHash;
+    }
+    
+    return authInstance;
 };
