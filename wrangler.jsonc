@@ -7,7 +7,7 @@
   ],
   "vars": {
     "NODE_ENV": "production",
-    "BETTER_AUTH_URL": "https://<your-worker-url>.workers.dev/", //URL of deployed worker
+    "BETTER_AUTH_URL": "https://test-workers-solid-tanstack-spa-betterauth-d1-kv.jhonra121.workers.dev/", //URL of deployed worker
     "BUN_VERSION": "1.2.16"
   },
   "observability": {
