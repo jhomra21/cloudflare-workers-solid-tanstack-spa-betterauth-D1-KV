@@ -14,7 +14,6 @@
     "enabled": true
   },
   "assets": {
-    "directory": "dist/client",
     "not_found_handling": "single-page-application"
   },
   "d1_databases": [
