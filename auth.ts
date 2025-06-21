@@ -27,7 +27,7 @@ const hashPassword = async (password: string): Promise<string> => {
         {
             name: 'PBKDF2',
             salt: salt,
-            iterations: 50000, // 50k iterations - balance security vs CPU limits
+            iterations: 5000, // 5k iterations - minimal for Workers CPU limits
             hash: 'SHA-256'
         },
         key,
@@ -66,7 +66,7 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
             {
                 name: 'PBKDF2',
                 salt: salt,
-                iterations: 50000, // Same as hashing
+                iterations: 5000, // Same as hashing
                 hash: 'SHA-256'
             },
             key,
@@ -91,8 +91,12 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
     }
 };
 
+// Simple module-level cache - survives for isolate lifetime
+let cachedAuth: ReturnType<typeof betterAuth> | null = null;
+
 export const getAuth = (env: Env) => {
-    return betterAuth({
+    if (!cachedAuth) {
+        cachedAuth = betterAuth({
         secret: env.BETTER_AUTH_SECRET,
         database: {
             dialect: new D1Dialect({ database: env.DB }),
@@ -124,5 +128,7 @@ export const getAuth = (env: Env) => {
                 clientSecret: env.GOOGLE_CLIENT_SECRET,
             }
         }
-    });
+        });
+    }
+    return cachedAuth;
 };
