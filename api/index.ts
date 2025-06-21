@@ -69,11 +69,16 @@ app.get('/api/', (c) => {
   });
 });
 
-// Warmup endpoint - pre-initializes betterAuth to avoid cold start delays
-app.get('/api/warmup', (c) => {
+// Warmup endpoint - pre-initializes betterAuth and critical paths
+app.get('/api/warmup', async (c) => {
   try {
-    // Trigger betterAuth initialization (the expensive part)
-    getAuth(c.env);
+    // Trigger betterAuth initialization
+    const auth = getAuth(c.env);
+    
+    // Pre-warm critical auth paths (without actual auth)
+    // This forces DB connection, query compilation, etc.
+    await auth.api.getSession({ headers: new Headers() }).catch(() => {});
+    
     return c.text('warm', 200);
   } catch (error) {
     // Silent fail - warmup is optional
