@@ -1,5 +1,5 @@
 {
-  "name": "cloudflare-workers-solid-tanstack-spa-betterauth-d1-kv",
+  "name": "test-workers-solid-tanstack-spa-betterauth-d1-kv",
   "compatibility_date": "2025-04-20",
   "main": "api/index.ts",
   "compatibility_flags": [
