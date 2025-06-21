@@ -11,6 +11,7 @@ import {
   useSignUpMutation, 
   useGoogleSignInMutation 
 } from '~/lib/auth-actions';
+import { warmupWorker } from '~/lib/warmup';
 import type { User, Session } from 'better-auth';
 
 type SessionQueryResult = {
@@ -42,6 +43,8 @@ function AuthPage() {
   const [containerHeight, setContainerHeight] = createSignal<string | number>('auto');
   let signInFormRef: HTMLDivElement | undefined;
   let signUpFormRef: HTMLDivElement | undefined;
+
+
 
 
   const handleError = (error: Error) => {
@@ -227,5 +230,9 @@ function AuthPage() {
 }
 
 export const Route = createFileRoute('/auth')({
+  beforeLoad: async () => {
+    // Pre-warm the Workers isolate before showing auth page
+    await warmupWorker();
+  },
   component: AuthPage,
 });

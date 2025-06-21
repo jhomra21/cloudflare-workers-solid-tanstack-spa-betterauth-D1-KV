@@ -69,6 +69,18 @@ app.get('/api/', (c) => {
   });
 });
 
+// Warmup endpoint - pre-initializes betterAuth to avoid cold start delays
+app.get('/api/warmup', (c) => {
+  try {
+    // Trigger betterAuth initialization (the expensive part)
+    getAuth(c.env);
+    return c.text('warm', 200);
+  } catch (error) {
+    // Silent fail - warmup is optional
+    return c.text('cold', 200);
+  }
+});
+
 app.all('/api/auth/*', (c) => {
   return getAuth(c.env).handler(c.req.raw);
 });
