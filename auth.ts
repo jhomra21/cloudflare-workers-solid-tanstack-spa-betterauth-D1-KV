@@ -64,6 +64,11 @@ export const getAuth = (env: Env) => {
             hash: hashPassword,
             verify: verifyPassword,
         },
+        user: {
+            deleteUser: {
+                enabled: true
+            }
+        },
         socialProviders: {
             google: {
                 prompt: "select_account",

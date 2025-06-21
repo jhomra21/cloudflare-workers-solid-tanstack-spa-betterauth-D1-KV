@@ -20,3 +20,5 @@ dist-ssr
 .cta.json
 
 .dev.vars
+
+AGENT.md

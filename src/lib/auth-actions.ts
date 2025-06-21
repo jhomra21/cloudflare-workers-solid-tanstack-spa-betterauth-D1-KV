@@ -55,6 +55,61 @@ export function useGoogleSignInMutation() {
     }));
 }
 
+type UserUpdateVariables = { 
+  name: string; 
+  image: string | null | undefined;
+};
+
+/**
+ * Updates user profile information with optimistic updates
+ */
+export function useUpdateUserMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation(() => ({
+    mutationFn: (updatedUser: UserUpdateVariables) => authClient.updateUser(updatedUser),
+    onMutate: async (updatedUser) => {
+      await queryClient.cancelQueries({ queryKey: ['session'] });
+      const previousSession = queryClient.getQueryData(['session']);
+      queryClient.setQueryData(['session'], (old: any) => ({
+        ...old,
+        user: { ...old.user, name: updatedUser.name }
+      }));
+      return { previousSession };
+    },
+    onError: (_err: Error, _updatedUser: UserUpdateVariables, context: any) => {
+      if (context?.previousSession) {
+        queryClient.setQueryData(['session'], context.previousSession);
+      }
+    }
+    // Removed onSettled invalidation since optimistic update is sufficient
+  }));
+}
+
+/**
+ * Deletes the current user account with proper session cleanup
+ */
+export function useDeleteUserMutation() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation(() => ({
+    mutationFn: (password?: string) => {
+      // If password provided, use it for authentication
+      if (password) {
+        return authClient.deleteUser({ password });
+      }
+      // Otherwise use fresh session authentication
+      return authClient.deleteUser();
+    },
+    onSuccess: () => {
+      // Clear all queries and navigate to goodbye page
+      queryClient.clear();
+      navigate({ to: '/auth', search: { deleted: 'true' } });
+    }
+  }));
+}
+
 /**
  * A mutation hook that provides a centralized sign-out function.
  * It handles signing out the user via the auth client, clearing the

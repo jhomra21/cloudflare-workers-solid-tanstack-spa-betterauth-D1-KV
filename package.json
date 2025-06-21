@@ -16,7 +16,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@kobalte/core": "^0.13.9",
+    "@kobalte/core": "^0.13.10",
     "@libsql/client": "^0.15.7",
     "@tailwindcss/vite": "^4.1.7",
     "@tanstack/router-plugin": "^1.120.5",

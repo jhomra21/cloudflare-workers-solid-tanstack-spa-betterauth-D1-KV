@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/solid-router';
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/solid-router';
 import { Show, createSignal, createEffect, onCleanup } from 'solid-js';
 import { useQuery, type QueryObserverResult } from '@tanstack/solid-query';
 import { Button } from '~/components/ui/button';
@@ -30,6 +30,7 @@ type AuthTab = 'signIn' | 'signUp';
 function AuthPage() {
   const sessionQuery = useQuery(() => sessionQueryOptions()) as QueryObserverResult<SessionQueryResult, Error>;
   const navigate = useNavigate();
+  const search = useSearch({ from: '/auth' });
 
   const [activeTab, setActiveTab] = createSignal<AuthTab>('signIn');
   const [name, setName] = createSignal('');
@@ -86,6 +87,14 @@ function AuthPage() {
 
   return (
     <div class="p-8 min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-400/60 text-gray-900">
+      <Show when={(search as any)?.deleted === 'true'}>
+        <Card class="w-full max-w-sm mb-4 bg-green-50 border-green-200">
+          <CardContent class="p-4 text-center">
+            <p class="text-green-800 font-medium">Account successfully deleted</p>
+            <p class="text-green-600 text-sm mt-1">Thank you for using our service</p>
+          </CardContent>
+        </Card>
+      </Show>
       <Card class="w-full max-w-sm overflow-hidden transition-all duration-300 ease-in-out">
         <CardHeader class="p-0">
             <div class="flex">
