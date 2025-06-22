@@ -27,7 +27,7 @@ const hashPassword = async (password: string): Promise<string> => {
         {
             name: 'PBKDF2',
             salt: salt,
-            iterations: 5000, // 5k iterations - minimal for Workers CPU limits
+            iterations: 1000, // 1k iterations - minimal for Workers CPU limits
             hash: 'SHA-256'
         },
         key,
@@ -66,7 +66,7 @@ const verifyPassword = async (hashedPassword: string, password: string): Promise
             {
                 name: 'PBKDF2',
                 salt: salt,
-                iterations: 5000, // Same as hashing
+                iterations: 1000, // Same as hashing
                 hash: 'SHA-256'
             },
             key,
