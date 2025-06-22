@@ -3,7 +3,6 @@ import {
   Outlet,
   createRootRouteWithContext,
 } from '@tanstack/solid-router'
-import { Suspense } from 'solid-js'
 import { Transition } from 'solid-transition-group'
 import { QueryClient } from '@tanstack/solid-query'
 import { TanStackRouterDevtools } from '@tanstack/solid-router-devtools'
@@ -72,15 +71,14 @@ function RootComponent() {
           });
         }}
       >
-        <Suspense>
+      {/* <Suspense></Suspense> */}
 
           {/* Simplified transition for root route - less animations to debug */}
           <Outlet />
 
-        </Suspense></Transition>
+      </Transition>
       <Toaster />
       <TanStackRouterDevtools position="bottom-right" />
     </div>
   )
 }
-

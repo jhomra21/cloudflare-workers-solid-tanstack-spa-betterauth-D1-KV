@@ -40,7 +40,7 @@ import {
         //   </div>
         // }
         >
-          <Transition
+          {/* <Transition
             onEnter={(el, done) => {
               const animation = el.animate(
                 [
@@ -65,7 +65,7 @@ import {
                 done();
               });
             }}
-          >
+          > */}
             <SidebarProvider>
               <div class="flex h-screen w-screen overflow-hidden bg-muted/40">
                 <AppSidebar />
@@ -124,7 +124,7 @@ import {
                 </SidebarInset>
               </div>
             </SidebarProvider>
-          </Transition>
+          {/* </Transition> */}
         </Show>
       </div>
     );

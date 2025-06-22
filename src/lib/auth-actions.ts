@@ -73,7 +73,7 @@ export function useUpdateUserMutation() {
       const previousSession = queryClient.getQueryData(['session']);
       queryClient.setQueryData(['session'], (old: any) => ({
         ...old,
-        user: { ...old.user, name: updatedUser.name }
+        user: { ...old.user, name: updatedUser.name, image: updatedUser.image }
       }));
       return { previousSession };
     },
@@ -81,8 +81,10 @@ export function useUpdateUserMutation() {
       if (context?.previousSession) {
         queryClient.setQueryData(['session'], context.previousSession);
       }
-    }
-    // Removed onSettled invalidation since optimistic update is sufficient
+    },
+    // By only using onMutate and onError, we get an instant optimistic update
+    // without triggering extra refetches from onSuccess or onSettled, which
+    // were causing the root layout's Transition component to re-animate.
   }));
 }
 
@@ -130,6 +132,36 @@ export function useSignOutMutation() {
     onError: (error: Error) => {
       // In a real app, you might use a more robust notification system.
       alert(`Sign out failed: ${error.message}`);
+    },
+  }));
+}
+
+type UpdatePasswordCredentials = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+/**
+ * Updates user password with current password verification
+ */
+export function useUpdatePasswordMutation() {
+  return useMutation(() => ({
+    mutationFn: async (credentials: UpdatePasswordCredentials) => {
+      const response = await fetch('/api/update-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password');
+      }
+
+      return data;
     },
   }));
 } 

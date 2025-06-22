@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
-import { createSignal, createMemo, Show } from 'solid-js';
+import { createSignal, createMemo, Show, createEffect } from 'solid-js';
 import { useQuery } from '@tanstack/solid-query';
 import { toast } from 'solid-sonner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
@@ -17,7 +17,7 @@ import {
   DialogTrigger 
 } from '~/components/ui/dialog';
 import { sessionQueryOptions } from '~/lib/auth-guard';
-import { useUpdateUserMutation, useDeleteUserMutation } from '~/lib/auth-actions';
+import { useUpdateUserMutation, useDeleteUserMutation, useUpdatePasswordMutation } from '~/lib/auth-actions';
 
 function getInitials(name: string) {
 	if (!name || name === 'Guest') return name.charAt(0).toUpperCase() || 'G';
@@ -33,11 +33,18 @@ function getInitials(name: string) {
 function AccountPage() {
 	const sessionQuery = useQuery(() => sessionQueryOptions());
 	const user = createMemo(() => sessionQuery.data?.user);
-	const [name, setName] = createSignal(user()?.name || '');
-	
-	// User preferences state
-	const [emailNotifications, setEmailNotifications] = createSignal(true);
-	const [marketingEmails, setMarketingEmails] = createSignal(false);
+	const [name, setName] = createSignal('');
+
+	createEffect(() => {
+		if (user()?.name) {
+			setName(user()!.name!);
+		}
+	});
+
+	// Password update state
+	const [currentPassword, setCurrentPassword] = createSignal('');
+	const [newPassword, setNewPassword] = createSignal('');
+	const [confirmPassword, setConfirmPassword] = createSignal('');
 	
 	// Account deletion state
 	const [showDeleteDialog, setShowDeleteDialog] = createSignal(false);
@@ -45,6 +52,7 @@ function AccountPage() {
 	const [deleteConfirmation, setDeleteConfirmation] = createSignal('');
 
 	const updateUserMutation = useUpdateUserMutation();
+	const updatePasswordMutation = useUpdatePasswordMutation();
 	const deleteUserMutation = useDeleteUserMutation();
 
 	const handleSave = (e: Event) => {
@@ -64,6 +72,38 @@ function AccountPage() {
 			success: 'Account updated successfully!',
 			error: (err) => `Failed to update: ${err.message}`
 		});
+	};
+
+	const handleUpdatePassword = (e: Event) => {
+		e.preventDefault();
+		
+		if (newPassword() !== confirmPassword()) {
+			toast.error('New passwords do not match');
+			return;
+		}
+
+		if (newPassword().length < 8) {
+			toast.error('New password must be at least 8 characters');
+			return;
+		}
+
+		const promise = updatePasswordMutation.mutateAsync({
+			currentPassword: currentPassword(),
+			newPassword: newPassword(),
+		});
+
+		toast.promise(promise, {
+			loading: 'Updating password...',
+			success: 'Password updated successfully!',
+			error: (err) => `Failed to update password: ${err.message}`
+		});
+
+		// Clear form on success
+		promise.then(() => {
+			setCurrentPassword('');
+			setNewPassword('');
+			setConfirmPassword('');
+		}).catch(() => {});
 	};
 
 	const handleDeleteAccount = () => {
@@ -173,41 +213,78 @@ function AccountPage() {
 				</form>
 			</Card>
 
-			{/* Preferences */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Preferences</CardTitle>
-				</CardHeader>
-				<CardContent class="space-y-6">
-					<div class="flex items-center justify-between">
-						<div class="space-y-0.5">
-							<h3 class="text-base font-medium">Email Notifications</h3>
-							<p class="text-sm text-muted-foreground">
-								Receive email notifications for important updates and activity.
-							</p>
-						</div>
-						<Switch
-							checked={emailNotifications()}
-							onChange={setEmailNotifications}
-						/>
-					</div>
+			{/* Password Security */}
+			<Show when={user()?.email?.includes('@')}>
+				<Card>
+					<CardHeader>
+						<CardTitle>Password & Security</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<form onSubmit={handleUpdatePassword} class="space-y-4">
+							<div class="space-y-2">
+								<label for="current-password" class="text-sm font-medium">
+									Current Password
+								</label>
+								<Input
+									id="current-password"
+									type="password"
+									placeholder="Enter your current password"
+									value={currentPassword()}
+									onChange={setCurrentPassword}
+									required
+								/>
+							</div>
 
-					<Separator />
+							<div class="space-y-2">
+								<label for="new-password" class="text-sm font-medium">
+									New Password
+								</label>
+								<Input
+									id="new-password"
+									type="password"
+									placeholder="Enter your new password"
+									value={newPassword()}
+									onChange={setNewPassword}
+									required
+								/>
+								<p class="text-xs text-muted-foreground">
+									Password must be at least 8 characters long.
+								</p>
+							</div>
 
-					<div class="flex items-center justify-between">
-						<div class="space-y-0.5">
-							<h3 class="text-base font-medium">Marketing Emails</h3>
-							<p class="text-sm text-muted-foreground">
-								Receive emails about new features, updates, and special offers.
-							</p>
-						</div>
-						<Switch
-							checked={marketingEmails()}
-							onChange={setMarketingEmails}
-						/>
-					</div>
-				</CardContent>
-			</Card>
+							<div class="space-y-2">
+								<label for="confirm-password" class="text-sm font-medium">
+									Confirm New Password
+								</label>
+								<Input
+									id="confirm-password"
+									type="password"
+									placeholder="Confirm your new password"
+									value={confirmPassword()}
+									onChange={setConfirmPassword}
+									required
+								/>
+							</div>
+
+							<div class="flex justify-end pt-4">
+								<Button
+									type="submit"
+									variant="sf-compute"
+									disabled={
+										updatePasswordMutation.isPending ||
+										!currentPassword() ||
+										!newPassword() ||
+										!confirmPassword() ||
+										newPassword() !== confirmPassword()
+									}
+								>
+									{updatePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
+								</Button>
+							</div>
+						</form>
+					</CardContent>
+				</Card>
+			</Show>
 
 			{/* Danger Zone */}
 			<Card class="border-destructive/50">
