@@ -3,7 +3,6 @@ import { For, createMemo, children, Show } from 'solid-js';
 import { useMutation } from '@tanstack/solid-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
-import Footer from '~/components/Footer';
 import { useSignOutMutation } from '~/lib/auth-actions';
 import { Spinner } from '../auth';
 
@@ -173,8 +172,6 @@ export function DashboardIndex() {
           </CardFooter>
         </Card>
       </div>
-      
-      <Footer />
     </div>
   );
 }

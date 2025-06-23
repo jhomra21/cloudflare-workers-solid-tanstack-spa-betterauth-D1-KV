@@ -7,14 +7,13 @@ import { Input } from '~/components/ui/input';
 import { Button } from '~/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '~/components/ui/avatar';
 import { Separator } from '~/components/ui/separator';
-import { Switch } from '~/components/ui/switch';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger
 } from '~/components/ui/dialog';
 import { sessionQueryOptions } from '~/lib/auth-guard';
 import { useUpdateUserMutation, useDeleteUserMutation, useUpdatePasswordMutation } from '~/lib/auth-actions';
@@ -45,7 +44,7 @@ function AccountPage() {
 	const [currentPassword, setCurrentPassword] = createSignal('');
 	const [newPassword, setNewPassword] = createSignal('');
 	const [confirmPassword, setConfirmPassword] = createSignal('');
-	
+
 	// Account deletion state
 	const [showDeleteDialog, setShowDeleteDialog] = createSignal(false);
 	const [deletePassword, setDeletePassword] = createSignal('');
@@ -76,7 +75,7 @@ function AccountPage() {
 
 	const handleUpdatePassword = (e: Event) => {
 		e.preventDefault();
-		
+
 		if (newPassword() !== confirmPassword()) {
 			toast.error('New passwords do not match');
 			return;
@@ -103,7 +102,7 @@ function AccountPage() {
 			setCurrentPassword('');
 			setNewPassword('');
 			setConfirmPassword('');
-		}).catch(() => {});
+		}).catch(() => { });
 	};
 
 	const handleDeleteAccount = () => {
@@ -142,13 +141,13 @@ function AccountPage() {
 								<h3 class="text-base font-medium">Your Name</h3>
 								<p class="text-sm text-muted-foreground">This will be displayed on your profile.</p>
 							</div>
-							<Input 
-								id="name" 
-								name="name" 
-								class="max-w-xs" 
-								value={name()} 
-								onChange={setName} 
-								placeholder="Your name" 
+							<Input
+								id="name"
+								name="name"
+								class="max-w-xs"
+								value={name()}
+								onChange={setName}
+								placeholder="Your name"
 							/>
 						</div>
 
@@ -191,15 +190,15 @@ function AccountPage() {
 							</div>
 						</div>
 					</CardContent>
-					<CardFooter class="flex items-center justify-between bg-muted/50 py-4 px-6">
+					<CardFooter class="flex items-center justify-between bg-muted/50">
 						<p class="text-sm text-muted-foreground">
 							Joined on{' '}
 							{user()?.createdAt
 								? new Date(user()!.createdAt).toLocaleDateString(undefined, {
-										month: 'long',
-										day: 'numeric',
-										year: 'numeric'
-									})
+									month: 'long',
+									day: 'numeric',
+									year: 'numeric'
+								})
 								: '—'}
 						</p>
 						<Button
@@ -219,20 +218,21 @@ function AccountPage() {
 					<CardHeader>
 						<CardTitle>Password & Security</CardTitle>
 					</CardHeader>
-					<CardContent>
-						<form onSubmit={handleUpdatePassword} class="space-y-4">
+
+					<form onSubmit={handleUpdatePassword} class="space-y-4">
+						<CardContent>
 							<div class="space-y-2">
-								<label for="current-password" class="text-sm font-medium">
-									Current Password
-								</label>
-								<Input
-									id="current-password"
-									type="password"
-									placeholder="Enter your current password"
-									value={currentPassword()}
-									onChange={setCurrentPassword}
-									required
-								/>
+							<label for="current-password" class="text-sm font-medium">
+								Current Password
+							</label>
+							<Input
+								id="current-password"
+								type="password"
+								placeholder="Enter your current password"
+								value={currentPassword()}
+								onChange={setCurrentPassword}
+								required
+							/>
 							</div>
 
 							<div class="space-y-2">
@@ -265,34 +265,34 @@ function AccountPage() {
 									required
 								/>
 							</div>
+						</CardContent>
+						<CardFooter class="flex justify-end">
+							<Button
+								type="submit"
+								variant="sf-compute"
+								disabled={
+									updatePasswordMutation.isPending ||
+									!currentPassword() ||
+									!newPassword() ||
+									!confirmPassword() ||
+									newPassword() !== confirmPassword()
+								}
+							>
+								{updatePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
+							</Button>
+						</CardFooter>
+					</form>
 
-							<div class="flex justify-end pt-4">
-								<Button
-									type="submit"
-									variant="sf-compute"
-									disabled={
-										updatePasswordMutation.isPending ||
-										!currentPassword() ||
-										!newPassword() ||
-										!confirmPassword() ||
-										newPassword() !== confirmPassword()
-									}
-								>
-									{updatePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
-								</Button>
-							</div>
-						</form>
-					</CardContent>
 				</Card>
 			</Show>
 
 			{/* Danger Zone */}
-			<Card class="border-destructive/50">
+			<Card class="border-destructive/20">
 				<CardHeader>
 					<CardTitle class="text-destructive">Danger Zone</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div class="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+					<div class="flex items-center justify-between p-4 rounded-lg bg-destructive/5">
 						<div>
 							<h3 class="text-base font-medium text-destructive">Delete Account</h3>
 							<p class="text-sm text-muted-foreground">
@@ -337,18 +337,18 @@ function AccountPage() {
 										/>
 									</div>
 									<div class="flex gap-2 pt-4">
-										<Button 
-											variant="outline" 
-											class="flex-1" 
+										<Button
+											variant="outline"
+											class="flex-1"
 											onClick={() => setShowDeleteDialog(false)}
 										>
 											Cancel
 										</Button>
-										<Button 
-											variant="destructive" 
+										<Button
+											variant="destructive"
 											class="flex-1"
 											disabled={
-												deleteConfirmation() !== 'DELETE' || 
+												deleteConfirmation() !== 'DELETE' ||
 												deleteUserMutation.isPending
 											}
 											onClick={handleDeleteAccount}
