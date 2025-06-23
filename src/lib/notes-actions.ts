@@ -41,19 +41,22 @@ export const noteKeys = {
   analytics: () => [...noteKeys.all, 'analytics'] as const,
 };
 
+export const notesQueryOptions = () => ({
+  queryKey: noteKeys.lists(),
+  queryFn: async () => {
+    const response = await fetch('/api/notes/');
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch notes');
+    }
+    const data = await response.json();
+    return (data.notes || []) as Note[];
+  },
+});
+
 // Get all notes query
 export function useNotesQuery() {
-  return useQuery(() => ({
-    queryKey: noteKeys.lists(),
-    queryFn: async () => {
-      const response = await fetch('/api/notes/');
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch notes');
-      }
-      return response.json().then((data) => data.notes || []);
-    },
-  }));
+  return useQuery(() => notesQueryOptions());
 }
 
 // Get single note query

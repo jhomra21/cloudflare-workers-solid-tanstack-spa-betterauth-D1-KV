@@ -12,13 +12,19 @@ import {
   useCreateNoteMutation, 
   useUpdateNoteMutation, 
   useDeleteNoteMutation,
+  notesQueryOptions,
   type Note,
   type NoteInput,
   type NoteUpdateInput
 } from "~/lib/notes-actions";
-
 export const Route = createFileRoute('/dashboard/notes')({
-  component: NotesPage
+  loader: async ({ context }) => {
+    
+    const queryClient = context.queryClient;
+    const notes = await queryClient.ensureQueryData(notesQueryOptions());
+    return { notes };
+  },
+  component: NotesPage,
 });
 
 const defaultNote = (): NoteInput => ({ title: '', content: '' });
@@ -107,7 +113,7 @@ function NotesPage() {
         }
       >
         <Show
-          when={(notesQuery.data?.length || 0) > 0}
+          when={(notesQuery.data?.length ?? 0) > 0}
           fallback={
             <Card class="flex flex-col items-center justify-center py-12 px-4">
               <Icon name="stickynote" class="h-12 w-12 text-muted-foreground mb-4" />
