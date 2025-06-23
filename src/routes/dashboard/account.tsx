@@ -300,7 +300,7 @@ function AccountPage() {
 							</p>
 						</div>
 						<Dialog open={showDeleteDialog()} onOpenChange={setShowDeleteDialog}>
-							<DialogTrigger as={Button} variant="destructive" size="sm">
+							<DialogTrigger as={Button} variant="sf-compute-destructive" size="sm">
 								Delete Account
 							</DialogTrigger>
 							<DialogContent class="sm:max-w-md">
@@ -345,7 +345,7 @@ function AccountPage() {
 											Cancel
 										</Button>
 										<Button
-											variant="destructive"
+											variant="sf-compute-destructive"
 											class="flex-1"
 											disabled={
 												deleteConfirmation() !== 'DELETE' ||
