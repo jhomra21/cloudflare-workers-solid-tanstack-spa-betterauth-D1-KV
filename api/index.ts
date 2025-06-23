@@ -1,44 +1,25 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { getAuth } from '../auth'
-import type { D1Database, KVNamespace, DurableObjectNamespace, Fetcher, DurableObject } from '@cloudflare/workers-types';
-
-
-// This is a common pattern to get types from a factory function without executing it.
-const authForTypes = getAuth({} as any);
-
-type Env = {
-    ASSETS: Fetcher;
-    DB: D1Database;
-    SESSIONS: KVNamespace;
-    BETTER_AUTH_SECRET: string;
-    GOOGLE_CLIENT_ID: string;
-    GOOGLE_CLIENT_SECRET: string;
-    FAL_KEY: string;
-    NODE_ENV?: string;
-};
-
-type HonoVariables = {
-    user: typeof authForTypes.$Infer.Session.user | null;
-    session: typeof authForTypes.$Infer.Session.session | null;
-}
+import type { Env, HonoVariables } from './types'
+import notesApi from './notes'
 
 const app = new Hono<{ Bindings: Env; Variables: HonoVariables }>()
 
 app.use('/api/*', cors({
   origin: (origin) => {
     const allowedOrigins = [
-        'http://localhost:3000', 
-        'http://localhost:3001',
-        'http://localhost:4173', 
-        'http://localhost:5173', 
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:3000',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:4173',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
     ];
     if (!origin || allowedOrigins.includes(origin)) {
-        return origin || '*';
+      return origin || '*';
     }
-    return null; 
+    return null;
   },
   allowMethods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE', 'HEAD', 'PATCH'],
 }));
@@ -52,7 +33,7 @@ app.use('/api/*', async (c, next) => {
 
   const auth = getAuth(c.env);
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  
+
   if (!session) {
     c.set("user", null);
     c.set("session", null);
@@ -73,25 +54,28 @@ app.all('/api/auth/*', (c) => {
   return getAuth(c.env).handler(c.req.raw);
 });
 
+// Mount the notes API routes
+app.route('/api/notes/', notesApi);
+
 // Update password endpoint - following Better Auth server-side pattern
 app.put('/api/update-password', async (c) => {
   try {
     // Use session from middleware context (Better Auth Hono pattern)
     const user = c.get('user');
     const session = c.get('session');
-    
+
     if (!user || !session) {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
     const { currentPassword, newPassword } = await c.req.json();
-    
+
     if (!currentPassword || !newPassword) {
       return c.json({ error: 'Current password and new password are required' }, 400);
     }
 
     const auth = getAuth(c.env);
-    
+
     // Verify current password by attempting sign-in (Better Auth way)
     try {
       await auth.api.signInEmail({
@@ -105,7 +89,7 @@ app.put('/api/update-password', async (c) => {
     const ctx = await auth.$context;
     const hashedPassword = await ctx.password.hash(newPassword);
     await ctx.internalAdapter.updatePassword(user.id, hashedPassword);
-    
+
     return c.json({ success: true });
   } catch (error) {
     console.error('Password update error:', error);

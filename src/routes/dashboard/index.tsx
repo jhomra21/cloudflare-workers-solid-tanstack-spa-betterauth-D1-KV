@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '~/components/ui/button';
 import { useSignOutMutation } from '~/lib/auth-actions';
 import { Spinner } from '../auth';
+import { NotesAnalytics } from '~/components/NotesAnalytics';
 
 
 export function DashboardIndex() {
@@ -29,6 +30,13 @@ export function DashboardIndex() {
       icon: '🗄️',
       path: '/dashboard/account',
       color: 'border-green-200 dark:border-green-800'
+    },
+    {
+      title: 'Notes',
+      description: 'Create and manage your notes',
+      icon: '📝',
+      path: '/dashboard/notes',
+      color: 'border-purple-200 dark:border-purple-800'
     }
     // to add more items here, follow the format below
     //,
@@ -86,6 +94,12 @@ export function DashboardIndex() {
             Welcome to the dashboard. You can edit this page at <span class="font-mono text-base bg-muted px-1 rounded-md">/routes/dashboard/index.tsx</span>
           </p>
         </div>
+
+        {/* Notes Analytics */}
+        <div class="mb-10">
+          <NotesAnalytics />
+        </div>
+        
         <div class="mb-10">
           <Button 
             variant="sf-compute" 
@@ -159,6 +173,10 @@ export function DashboardIndex() {
               <li class="flex items-center gap-2">
                 <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
                 Shadcn components converted to SolidJS [<a href="https://www.solid-ui.com/" class="text-blue-500">solid-ui</a>, <a href="https://shadcn-solid.com/" class="text-blue-500">shadcn-solid</a>]
+              </li>
+              <li class="flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
+                Notes CRUD with D1 and analytics dashboard
               </li>  
             </ul>
           </CardContent>
