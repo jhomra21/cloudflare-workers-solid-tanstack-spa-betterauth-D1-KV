@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/solid-router";
-import { createSignal, For, Show } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createSignal, For, Show, createEffect } from "solid-js";
+import { createStore, reconcile } from "solid-js/store";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Icon } from "~/components/ui/icon";
@@ -17,9 +17,10 @@ import {
   type NoteInput,
   type NoteUpdateInput
 } from "~/lib/notes-actions";
+import { Transition, TransitionGroup } from "solid-transition-group";
+
 export const Route = createFileRoute('/dashboard/notes')({
   loader: async ({ context }) => {
-    
     const queryClient = context.queryClient;
     const notes = await queryClient.ensureQueryData(notesQueryOptions());
     return { notes };
@@ -27,25 +28,29 @@ export const Route = createFileRoute('/dashboard/notes')({
   component: NotesPage,
 });
 
-const defaultNote = (): NoteInput => ({ title: '', content: '' });
-
 function NotesPage() {
-  const [isEditorOpen, setIsEditorOpen] = createSignal(false);
-  const [editedNote, setEditedNote] = createStore<NoteInput | NoteUpdateInput>(defaultNote());
+  const loaderData = Route.useLoaderData();
+  const notesQuery = useNotesQuery();
 
-  // State for delete confirmation dialog
+  const [notes, setNotes] = createStore<Note[]>(loaderData().notes);
+
+  createEffect(() => {
+    if (notesQuery.data) {
+      setNotes(reconcile(notesQuery.data, { key: "id" }));
+    }
+  });
+
+  const [isEditorOpen, setIsEditorOpen] = createSignal(false);
+  const [editedNote, setEditedNote] = createSignal<NoteInput | NoteUpdateInput>({ title: '', content: '' });
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = createSignal(false);
   const [noteToDelete, setNoteToDelete] = createSignal<Note | undefined>(undefined);
-  
-  // Notes CRUD operations using TanStack Query
-  const notesQuery = useNotesQuery();
+
   const createNoteMutation = useCreateNoteMutation();
   const updateNoteMutation = useUpdateNoteMutation();
   const deleteNoteMutation = useDeleteNoteMutation();
 
-  // Handlers
   const handleCreateNote = () => {
-    setEditedNote(defaultNote());
+    setEditedNote({ title: '', content: '' });
     setIsEditorOpen(true);
   };
 
@@ -55,10 +60,11 @@ function NotesPage() {
   };
 
   const handleSaveNote = () => {
-    if ('id' in editedNote) {
-      updateNoteMutation.mutate(editedNote as NoteUpdateInput & { id: string });
+    const noteData = editedNote();
+    if ('id' in noteData) {
+      updateNoteMutation.mutate(noteData as NoteUpdateInput & { id: string });
     } else {
-      createNoteMutation.mutate(editedNote as NoteInput);
+      createNoteMutation.mutate(noteData as NoteInput);
     }
     setIsEditorOpen(false);
   };
@@ -84,7 +90,7 @@ function NotesPage() {
   };
 
   return (
-    <div class="container mx-auto py-6">
+    <div class="container py-8 px-4 mx-auto max-w-5xl">
       <div class="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="sm:text-left w-full">
           <h1 class="text-2xl font-semibold tracking-tight">Notes</h1>
@@ -98,7 +104,7 @@ function NotesPage() {
           New Note
         </Button>
       </div>
-
+      
       <Show 
         when={!notesQuery.isLoading && !notesQuery.isError} 
         fallback={
@@ -112,44 +118,77 @@ function NotesPage() {
           </div>
         }
       >
-        <Show
-          when={(notesQuery.data?.length ?? 0) > 0}
-          fallback={
-            <Card class="flex flex-col items-center justify-center py-12 px-4">
-              <Icon name="stickynote" class="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 class="text-lg font-medium mb-2">No notes yet</h3>
-              <p class="text-muted-foreground text-center mb-6">
-                Create your first note to get started
-              </p>
-              <Button onClick={handleCreateNote}>Create Note</Button>
-            </Card>
-          }
+        <Transition
+          mode="outin"
+          onEnter={(el, done) => {
+            const a = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-in-out" });
+            a.finished.then(done);
+          }}
+          onExit={(el, done) => {
+            const a = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, easing: "ease-in-out" });
+            a.finished.then(done);
+          }}
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <For each={notesQuery.data}>
-              {(note) => (
-                <NoteCard 
-                  note={note} 
-                  onEdit={handleEditNote}
-                  onArchive={handleArchiveNote}
-                  onDelete={handleDeleteRequest}
-                />
-              )}
-            </For>
-          </div>
-        </Show>
+          <Show
+            when={notes.length > 0}
+            fallback={
+              <Card class="flex flex-col items-center justify-center py-12 px-4">
+                <Icon name="stickynote" class="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 class="text-lg font-medium mb-2">No notes yet</h3>
+                <p class="text-muted-foreground text-center mb-6">
+                  Create your first note to get started
+                </p>
+                <Button onClick={handleCreateNote}>Create Note</Button>
+              </Card>
+            }
+          >
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <TransitionGroup
+                onEnter={(el, done) => {
+                  const a = el.animate(
+                    [
+                      { opacity: 0, transform: 'scale(0.9)' },
+                      { opacity: 1, transform: 'scale(1)' }
+                    ],
+                    { duration: 250, easing: 'ease-in-out' }
+                  );
+                  a.finished.then(done);
+                }}
+                onExit={(el, done) => {
+                  const a = el.animate(
+                    [
+                      { opacity: 1, transform: 'scale(1)' },
+                      { opacity: 0, transform: 'scale(0.9)' }
+                    ],
+                    { duration: 200, easing: 'ease-in-out' }
+                  );
+                  a.finished.then(done);
+                }}
+              >
+                <For each={notes}>
+                  {(note) => (
+                    <NoteCard 
+                      note={note} 
+                      onEdit={handleEditNote}
+                      onArchive={handleArchiveNote}
+                      onDelete={handleDeleteRequest}
+                    />
+                  )}
+                </For>
+              </TransitionGroup>
+            </div>
+          </Show>
+        </Transition>
       </Show>
-
-      {/* Note editor dialog */}
+ 
       <NoteEditor
         isOpen={isEditorOpen()}
         onClose={() => setIsEditorOpen(false)}
         onSave={handleSaveNote}
-        note={editedNote}
+        note={editedNote()}
         setNote={setEditedNote}
       />
 
-      {/* Delete confirmation dialog */}
       <Dialog open={isDeleteConfirmOpen()} onOpenChange={setIsDeleteConfirmOpen}>
         <DialogContent>
           <DialogHeader>

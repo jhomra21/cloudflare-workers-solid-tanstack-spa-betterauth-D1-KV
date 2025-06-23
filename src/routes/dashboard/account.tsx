@@ -123,7 +123,7 @@ function AccountPage() {
 	};
 
 	return (
-		<div class="container mx-auto max-w-4xl py-8 px-4 space-y-8">
+		<div class="container py-8 px-4 mx-auto max-w-5xl space-y-8">
 			<div>
 				<h1 class="text-3xl font-bold tracking-tight">Account Settings</h1>
 				<p class="text-muted-foreground mt-1">Manage your account, preferences, and data.</p>

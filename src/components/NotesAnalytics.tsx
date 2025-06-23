@@ -8,7 +8,7 @@ export function NotesAnalytics() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold tracking-tight">Analytics Dashboard</h2>
+      <h2 class="text-xl font-semibold tracking-tight">Notes Analytics</h2>
       
       <Show
         when={!analyticsQuery.isLoading && !analyticsQuery.isError}
@@ -92,41 +92,6 @@ export function NotesAnalytics() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Progress Card */}
-        <Card class="mt-4">
-          <CardHeader class="pb-2">
-            <CardTitle class="text-sm font-medium text-muted-foreground">Content Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="space-y-2">
-              <div class="flex items-center justify-between">
-                <div>Average Content Length</div>
-                <div class="font-medium">
-                  {analyticsQuery.data?.avgContentLength || 0} characters
-                </div>
-              </div>
-              <div class="flex items-center justify-between">
-                <div>Active vs. Archived</div>
-                <div class="font-medium">
-                  {analyticsQuery.data?.totalNotes ? 
-                    `${Math.round((analyticsQuery.data?.activeNotes / analyticsQuery.data?.totalNotes) * 100)}% Active` : 
-                    '0% Active'}
-                </div>
-              </div>
-            </div>
-            <div class="mt-4 h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                class="h-full bg-primary"
-                style={{
-                  width: analyticsQuery.data?.totalNotes ? 
-                    `${Math.round((analyticsQuery.data?.activeNotes / analyticsQuery.data?.totalNotes) * 100)}%` : 
-                    '0%'
-                }}
-              />
-            </div>
-          </CardContent>
-        </Card>
       </Show>
     </div>
   );

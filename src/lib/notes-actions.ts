@@ -95,10 +95,12 @@ export function useCreateNoteMutation() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Invalidate the notes list to refetch
-      queryClient.invalidateQueries({ queryKey: noteKeys.lists() });
+      // Instead of just invalidating, we can set the new data in the cache
+      queryClient.setQueryData(noteKeys.lists(), (old: Note[] | undefined) => {
+        return old ? [data, ...old] : [data];
+      });
       toast.success('Note created successfully');
-      return data;
+      // No need to invalidate here since we're setting the data directly
     },
     onError: (error: Error) => {
       toast.error(`Failed to create note: ${error.message}`);
@@ -206,6 +208,9 @@ export function useDeleteNoteMutation() {
         return old.filter(note => note.id !== id);
       });
 
+      // Also remove the detail query if it exists
+      queryClient.removeQueries({ queryKey: noteKeys.detail(id) });
+
       // Return context with snapshotted value
       return { previousNotes };
     },
@@ -218,8 +223,8 @@ export function useDeleteNoteMutation() {
     },
     onSettled: () => {
       // Invalidate lists to refetch with updated data
-      queryClient.invalidateQueries({ queryKey: noteKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: noteKeys.analytics() });
+      // queryClient.invalidateQueries({ queryKey: noteKeys.lists() });
+      // queryClient.invalidateQueries({ queryKey: noteKeys.analytics() });
     },
     onSuccess: () => {
       toast.success('Note deleted successfully');

@@ -1,15 +1,6 @@
 import { Hono } from 'hono'
 import type { Env, HonoVariables } from './types';
 
-// Simple UUID generator function
-function generateId() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
-
 const notesApi = new Hono<{ Bindings: Env; Variables: HonoVariables }>();
 
 // Notes analytics endpoint
@@ -112,7 +103,7 @@ notesApi.post('/', async (c) => {
             return c.json({ error: 'Title is required' }, 400);
         }
 
-        const id = generateId();
+        const id = crypto.randomUUID();
         const now = new Date().toISOString();
 
         await c.env.DB.prepare(

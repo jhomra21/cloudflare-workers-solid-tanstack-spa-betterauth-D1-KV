@@ -3,14 +3,14 @@ import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel, TextFieldTextArea } from "~/components/ui/text-field";
 import { type Note, type NoteInput, type NoteUpdateInput } from "~/lib/notes-actions";
-import type { SetStoreFunction } from "solid-js/store";
+import type { Setter } from "solid-js";
 
 interface NoteEditorProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
   note: NoteInput | NoteUpdateInput;
-  setNote: SetStoreFunction<NoteInput | NoteUpdateInput>;
+  setNote: Setter<NoteInput | NoteUpdateInput>;
 }
 
 export function NoteEditor(props: NoteEditorProps) {
@@ -37,9 +37,9 @@ export function NoteEditor(props: NoteEditorProps) {
             <TextFieldInput 
               placeholder="Note title"
               value={props.note.title || ''}
-              onInput={(e) => props.setNote("title", e.currentTarget.value)}
+              onInput={(e) => props.setNote(prev => ({ ...prev, title: e.currentTarget.value }))}
               required
-              class="w-full"
+              class="w-full mt-1"
             />
           </TextField>
           
@@ -48,9 +48,9 @@ export function NoteEditor(props: NoteEditorProps) {
             <TextFieldTextArea
               placeholder="Write your note content here..."
               value={props.note.content || ''}
-              onInput={(e) => props.setNote("content", e.currentTarget.value)}
+              onInput={(e) => props.setNote(prev => ({ ...prev, content: e.currentTarget.value }))}
               rows={6}
-              class="w-full"
+              class="w-full mt-1"
             />
           </TextField>
 
@@ -60,7 +60,7 @@ export function NoteEditor(props: NoteEditorProps) {
               <select
                 id="status"
                 value={(props.note as Note).status || 'active'}
-                onChange={(e) => (props.setNote as any)("status", e.currentTarget.value as 'active' | 'archived')}
+                onChange={(e) => props.setNote(prev => ({ ...prev, status: e.currentTarget.value as 'active' | 'archived' }))}
                 class="rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
                 <option value="active">Active</option>
@@ -73,7 +73,7 @@ export function NoteEditor(props: NoteEditorProps) {
             <Button type="button" variant="outline" onClick={props.onClose}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" variant="sf-compute">
               {isNew() ? "Create" : "Save"}
             </Button>
           </DialogFooter>

@@ -91,7 +91,7 @@ const DialogContent = <T extends ValidComponent = "div">(
       >
         {local.children}
         {showClose && (
-          <DialogClose class="absolute right-4 top-4">
+          <DialogClose class="absolute right-4 top-4 !cursor-pointer">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

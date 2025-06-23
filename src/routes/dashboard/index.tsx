@@ -33,7 +33,7 @@ export function DashboardIndex() {
     },
     {
       title: 'Notes',
-      description: 'Create and manage your notes',
+      description: 'Create and manage your notes from D1 database',
       icon: '📝',
       path: '/dashboard/notes',
       color: 'border-purple-200 dark:border-purple-800'
