@@ -1,208 +1,243 @@
-import { createFileRoute } from "@tanstack/solid-router";
-import { createSignal, For, Show, createEffect } from "solid-js";
-import { createStore, reconcile } from "solid-js/store";
-import { Button } from "~/components/ui/button";
-import { Card } from "~/components/ui/card";
-import { Icon } from "~/components/ui/icon";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { NoteCard } from "~/components/NoteCard";
-import { NoteEditor } from "~/components/NoteEditor";
-import { 
-  useNotesQuery, 
-  useCreateNoteMutation, 
-  useUpdateNoteMutation, 
-  useDeleteNoteMutation,
-  notesQueryOptions,
-  type Note,
-  type NoteInput,
-  type NoteUpdateInput
-} from "~/lib/notes-actions";
-import { Transition, TransitionGroup } from "solid-transition-group";
+import { createFileRoute, useNavigate } from '@tanstack/solid-router';
+import { createSignal, For, Show } from 'solid-js';
+import { Button } from '~/components/ui/button';
+import { Icon } from '~/components/ui/icon';
+import { NoteCard } from '~/components/NoteCard';
+import { NoteEditor } from '~/components/NoteEditor';
+import { useNotes, useCreateNoteMutation, useUpdateNoteMutation, useDeleteNoteMutation, useNoteEditor, type Note } from '~/lib/notes-actions';
+import { createEffect } from 'solid-js';
+import { Spinner } from '../auth';
+import { toast } from 'solid-sonner';
 
-export const Route = createFileRoute('/dashboard/notes')({
-  loader: async ({ context }) => {
-    const queryClient = context.queryClient;
-    const notes = await queryClient.ensureQueryData(notesQueryOptions());
-    return { notes };
-  },
-  component: NotesPage,
-});
+export function NotesPage() {
+  // Query and mutations
+  const notesQuery = useNotes();
+  const createMutation = useCreateNoteMutation();
+  const updateMutation = useUpdateNoteMutation();
+  const deleteMutation = useDeleteNoteMutation();
 
-function NotesPage() {
-  const loaderData = Route.useLoaderData();
-  const notesQuery = useNotesQuery();
+  // Local state for UI management
+  const [editorOpen, setEditorOpen] = createSignal(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false);
+  const [noteToDelete, setNoteToDelete] = createSignal<Note | null>(null);
+  const [filter, setFilter] = createSignal<'all' | 'active' | 'archived'>('all');
+  
+  // Editor state management
+  const { note, setNote, resetNote, setNoteForEditing } = useNoteEditor();
+  
+  // Filtered notes
+  const filteredNotes = () => {
+    if (!notesQuery.data) return [];
 
-  const [notes, setNotes] = createStore<Note[]>(loaderData().notes);
-
-  createEffect(() => {
-    if (notesQuery.data) {
-      setNotes(reconcile(notesQuery.data, { key: "id" }));
+    switch (filter()) {
+      case 'active':
+        return notesQuery.data.filter(note => note.status === 'active');
+      case 'archived':
+        return notesQuery.data.filter(note => note.status === 'archived');
+      default:
+        return notesQuery.data;
     }
-  });
-
-  const [isEditorOpen, setIsEditorOpen] = createSignal(false);
-  const [editedNote, setEditedNote] = createSignal<NoteInput | NoteUpdateInput>({ title: '', content: '' });
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = createSignal(false);
-  const [noteToDelete, setNoteToDelete] = createSignal<Note | undefined>(undefined);
-
-  const createNoteMutation = useCreateNoteMutation();
-  const updateNoteMutation = useUpdateNoteMutation();
-  const deleteNoteMutation = useDeleteNoteMutation();
-
-  const handleCreateNote = () => {
-    setEditedNote({ title: '', content: '' });
-    setIsEditorOpen(true);
   };
 
-  const handleEditNote = (note: Note) => {
-    setEditedNote(note);
-    setIsEditorOpen(true);
+  // Handle edit note
+  const handleEditNote = (noteToEdit: Note) => {
+    setNoteForEditing(noteToEdit);
+    setEditorOpen(true);
   };
 
-  const handleSaveNote = () => {
-    const noteData = editedNote();
-    if ('id' in noteData) {
-      updateNoteMutation.mutate(noteData as NoteUpdateInput & { id: string });
-    } else {
-      createNoteMutation.mutate(noteData as NoteInput);
-    }
-    setIsEditorOpen(false);
+  // Handle create new note
+  const handleNewNote = () => {
+    resetNote();
+    setEditorOpen(true);
   };
 
-  const handleArchiveNote = (note: Note) => {
-    const newStatus = note.status === 'active' ? 'archived' : 'active';
-    updateNoteMutation.mutate({ 
-      id: note.id, 
-      status: newStatus 
+  // Handle archive/unarchive note
+  const handleArchiveNote = (noteToArchive: Note) => {
+    const newStatus = noteToArchive.status === 'active' ? 'archived' : 'active';
+    const actionText = newStatus === 'archived' ? 'archived' : 'unarchived';
+    
+    updateMutation.mutate({
+      id: noteToArchive.id,
+      status: newStatus,
     });
-  };
-
-  const handleDeleteRequest = (note: Note) => {
-    setNoteToDelete(note);
-    setIsDeleteConfirmOpen(true);
+    
+    toast.success(`Note "${noteToArchive.title}" ${actionText}`);
   };
   
+  // Handle delete note
+  const handleDeleteNote = (noteToDelete: Note) => {
+    setNoteToDelete(noteToDelete);
+    setDeleteDialogOpen(true);
+  };
+  
+  // Handle confirm delete
   const confirmDelete = () => {
-    if (noteToDelete()) {
-      deleteNoteMutation.mutate(noteToDelete()!.id);
+    if (!noteToDelete()) return;
+    
+    const note = noteToDelete();
+    deleteMutation.mutate(note!.id);
+    
+    toast.success(`Note "${note!.title}" deleted`);
+    setDeleteDialogOpen(false);
+    setNoteToDelete(null);
+  };
+  
+  // Save note (create or update)
+  const saveNote = () => {
+    if (!note.title?.trim()) {
+      toast.error('Note title is required');
+      return;
     }
-    setIsDeleteConfirmOpen(false);
+    
+    if ('id' in note) {
+      // For updates, extract the plain object data from the store
+      const updateData = {
+        id: note.id,
+        title: note.title,
+        content: note.content,
+        status: note.status
+      };
+      updateMutation.mutate(updateData);
+      toast.success(`Note "${note.title}" updated`);
+    } else {
+      // For creation, extract the plain object data from the store
+      const createData = {
+        title: note.title,
+        content: note.content || ''
+      };
+      createMutation.mutate(createData);
+      toast.success(`Note "${note.title}" created`);
+    }
+    
+    setEditorOpen(false);
+    resetNote();
   };
 
   return (
-    <div class="container py-8 px-4 mx-auto max-w-5xl">
-      <div class="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div class="sm:text-left w-full">
-          <h1 class="text-2xl font-semibold tracking-tight">Notes</h1>
-          <p class="text-muted-foreground mt-1">
-            Create, edit, and manage your personal notes.
-          </p>
-        </div>
-        
-        <Button variant="sf-compute" onClick={handleCreateNote} class="w-full sm:w-auto">
-          <Icon name="plus" class="h-5 w-5 mr-2" />
-          New Note
-        </Button>
-      </div>
-      
-      <Show 
-        when={!notesQuery.isLoading && !notesQuery.isError} 
-        fallback={
-          <div class="flex justify-center p-8">
-            <Show 
-              when={!notesQuery.isError} 
-              fallback={<p>Error loading notes</p>}
-            >
-              <p>Loading notes...</p>
-            </Show>
+    <div class="container mx-auto max-w-5xl px-4 py-8 min-h-screen">
+      <div class="flex flex-col space-y-8">
+        {/* Header */}
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-2xl font-semibold mb-1">My Notes</h1>
+            <p class="text-muted-foreground text-sm">
+              Create, edit and manage your notes
+            </p>
           </div>
-        }
-      >
-        <Transition
-          mode="outin"
-          onEnter={(el, done) => {
-            const a = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-in-out" });
-            a.finished.then(done);
-          }}
-          onExit={(el, done) => {
-            const a = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, easing: "ease-in-out" });
-            a.finished.then(done);
-          }}
+          <Button 
+            variant="sf-compute" 
+            onClick={handleNewNote}
+            disabled={createMutation.isPending}
+          >
+            <Show when={!createMutation.isPending} fallback={<Spinner class="mr-2 h-4 w-4" />}>
+              <Icon name="plus" class="mr-2 h-4 w-4" />
+            </Show>
+            New Note
+          </Button>
+        </div>
+
+        {/* Filters */}
+        <div class="flex items-center space-x-4">
+          <Button
+            variant={filter() === 'all' ? 'sf-compute' : 'ghost'}
+            size="sm"
+            onClick={() => setFilter('all')}
+          >
+            All
+          </Button>
+          <Button
+            variant={filter() === 'active' ? 'sf-compute' : 'ghost'}
+            size="sm"
+            onClick={() => setFilter('active')}
+          >
+            <Icon name="file" class="mr-2 h-4 w-4" />
+            Active
+          </Button>
+          <Button
+            variant={filter() === 'archived' ? 'sf-compute' : 'ghost'}
+            size="sm"
+            onClick={() => setFilter('archived')}
+          >
+            <Icon name="archive" class="mr-2 h-4 w-4" />
+            Archived
+          </Button>
+        </div>
+
+        {/* Notes grid */}
+        <Show
+          when={!notesQuery.isPending}
+          fallback={<div class="flex justify-center py-12"><Spinner class="h-8 w-8" /></div>}
         >
           <Show
-            when={notes.length > 0}
+            when={notesQuery.data?.length}
             fallback={
-              <Card class="flex flex-col items-center justify-center py-12 px-4">
-                <Icon name="stickynote" class="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 class="text-lg font-medium mb-2">No notes yet</h3>
-                <p class="text-muted-foreground text-center mb-6">
-                  Create your first note to get started
+              <div class="text-center py-12">
+                <Icon name="file" class="mx-auto h-12 w-12 text-muted-foreground/60" />
+                <h2 class="mt-4 text-lg font-medium">No notes found</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Get started by creating a new note
                 </p>
-                <Button onClick={handleCreateNote}>Create Note</Button>
-              </Card>
+                <Button variant="sf-compute" class="mt-6" onClick={handleNewNote}>
+                  <Icon name="plus" class="mr-2 h-4 w-4" />
+                  New Note
+                </Button>
+              </div>
             }
           >
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <TransitionGroup
-                onEnter={(el, done) => {
-                  const a = el.animate(
-                    [
-                      { opacity: 0, transform: 'scale(0.9)' },
-                      { opacity: 1, transform: 'scale(1)' }
-                    ],
-                    { duration: 250, easing: 'ease-in-out' }
-                  );
-                  a.finished.then(done);
-                }}
-                onExit={(el, done) => {
-                  const a = el.animate(
-                    [
-                      { opacity: 1, transform: 'scale(1)' },
-                      { opacity: 0, transform: 'scale(0.9)' }
-                    ],
-                    { duration: 200, easing: 'ease-in-out' }
-                  );
-                  a.finished.then(done);
-                }}
-              >
-                <For each={notes}>
-                  {(note) => (
-                    <NoteCard 
-                      note={note} 
-                      onEdit={handleEditNote}
-                      onArchive={handleArchiveNote}
-                      onDelete={handleDeleteRequest}
-                    />
-                  )}
-                </For>
-              </TransitionGroup>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <For each={filteredNotes()}>
+                {note => (
+                  <NoteCard
+                    note={note}
+                    onEdit={handleEditNote}
+                    onArchive={handleArchiveNote}
+                    onDelete={handleDeleteNote}
+                  />
+                )}
+              </For>
             </div>
           </Show>
-        </Transition>
-      </Show>
- 
-      <NoteEditor
-        isOpen={isEditorOpen()}
-        onClose={() => setIsEditorOpen(false)}
-        onSave={handleSaveNote}
-        note={editedNote()}
-        setNote={setEditedNote}
-      />
+        </Show>
 
-      <Dialog open={isDeleteConfirmOpen()} onOpenChange={setIsDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete the note titled "{noteToDelete()?.title}".
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Note Editor Dialog */}
+        <NoteEditor
+          isOpen={editorOpen()}
+          onClose={() => setEditorOpen(false)}
+          onSave={saveNote}
+          note={note}
+          setNote={setNote}
+        />
+        
+        {/* Delete Confirmation Dialog */}
+        <div class={`fixed inset-0 bg-background backdrop-blur-sm bg-opacity-40 z-50 flex items-center justify-center ${deleteDialogOpen() ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity`}>
+          <div class="bg-background p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 class="text-lg font-semibold mb-4">Delete Note?</h2>
+            <p>Are you sure you want to delete the note "{noteToDelete()?.title}"? This action cannot be undone.</p>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setDeleteDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="sf-compute-destructive" 
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+              >
+                <Show when={!deleteMutation.isPending} fallback={<Spinner class="mr-2 h-4 w-4" />}>
+                  Delete
+                </Show>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-} 
+}
+
+export const Route = createFileRoute('/dashboard/notes')({
+  component: NotesPage,
+}); 

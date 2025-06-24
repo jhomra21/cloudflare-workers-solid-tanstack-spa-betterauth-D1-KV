@@ -3,47 +3,6 @@ import type { Env, HonoVariables } from './types';
 
 const notesApi = new Hono<{ Bindings: Env; Variables: HonoVariables }>();
 
-// Notes analytics endpoint
-notesApi.get('/analytics', async (c) => {
-    const user = c.get('user');
-    if (!user) {
-        return c.json({ error: 'Unauthorized' }, 401);
-    }
-
-    try {
-        const totalNotes = await c.env.DB.prepare(
-            'SELECT COUNT(*) as count FROM note WHERE userId = ?'
-        ).bind(user.id).first();
-
-        const activeNotes = await c.env.DB.prepare(
-            'SELECT COUNT(*) as count FROM note WHERE userId = ? AND status = "active"'
-        ).bind(user.id).first();
-
-        const archivedNotes = await c.env.DB.prepare(
-            'SELECT COUNT(*) as count FROM note WHERE userId = ? AND status = "archived"'
-        ).bind(user.id).first();
-
-        const recentNotes = await c.env.DB.prepare(
-            'SELECT COUNT(*) as count FROM note WHERE userId = ? AND createdAt > datetime("now", "-7 day")'
-        ).bind(user.id).first();
-
-        const avgContentLength = await c.env.DB.prepare(
-            'SELECT AVG(length(content)) as avg FROM note WHERE userId = ?'
-        ).bind(user.id).first();
-
-        return c.json({
-            totalNotes: totalNotes?.count || 0,
-            activeNotes: activeNotes?.count || 0,
-            archivedNotes: archivedNotes?.count || 0,
-            recentNotes: recentNotes?.count || 0,
-            avgContentLength: Math.round(Number(avgContentLength?.avg || 0))
-        });
-    } catch (error) {
-        console.error('Error fetching note analytics:', error);
-        return c.json({ error: 'Failed to fetch note analytics' }, 500);
-    }
-});
-
 // GET all notes
 notesApi.get('/', async (c) => {
     const user = c.get('user');

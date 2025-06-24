@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '~/components/ui/button';
 import { useSignOutMutation } from '~/lib/auth-actions';
 import { Spinner } from '../auth';
-import { NotesAnalytics } from '~/components/NotesAnalytics';
 
 
 export function DashboardIndex() {
@@ -95,11 +94,6 @@ export function DashboardIndex() {
           </p>
         </div>
 
-        {/* Notes Analytics */}
-        <div class="mb-10">
-          <NotesAnalytics />
-        </div>
-        
         <div class="mb-10">
           <Button 
             variant="sf-compute" 
@@ -176,7 +170,7 @@ export function DashboardIndex() {
               </li>
               <li class="flex items-center gap-2">
                 <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
-                Notes CRUD with D1 and analytics dashboard
+                Notes CRUD with D1
               </li>  
             </ul>
           </CardContent>

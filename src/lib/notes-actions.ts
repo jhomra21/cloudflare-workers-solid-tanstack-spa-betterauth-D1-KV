@@ -1,8 +1,8 @@
-import { useQueryClient, useMutation, useQuery } from '@tanstack/solid-query';
-import { toast } from 'solid-sonner';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/solid-query';
+import { createStore } from 'solid-js/store';
 
-// Type definitions for notes
-export interface Note {
+// Note type definition
+export type Note = {
   id: string;
   userId: string;
   title: string;
@@ -10,251 +10,240 @@ export interface Note {
   status: 'active' | 'archived';
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface NoteInput {
+// Input types for creating and updating notes
+export type NoteInput = {
   title: string;
   content?: string;
-}
+};
 
-export interface NoteUpdateInput {
+export type NoteUpdateInput = {
+  id: string;
   title?: string;
   content?: string;
   status?: 'active' | 'archived';
-}
-
-export interface NoteAnalytics {
-  totalNotes: number;
-  activeNotes: number;
-  archivedNotes: number;
-  recentNotes: number; // Notes created in the last 7 days
-  avgContentLength: number; // Average length of note content
-}
-
-// Query keys for consistent cache management
-export const noteKeys = {
-  all: ['notes'] as const,
-  lists: () => [...noteKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown>) => [...noteKeys.lists(), { filters }] as const,
-  details: () => [...noteKeys.all, 'detail'] as const,
-  detail: (id: string) => [...noteKeys.details(), id] as const,
-  analytics: () => [...noteKeys.all, 'analytics'] as const,
 };
 
-export const notesQueryOptions = () => ({
-  queryKey: noteKeys.lists(),
-  queryFn: async () => {
+// API client for notes
+const notesApi = {
+  // Get all notes
+  async getAllNotes(): Promise<Note[]> {
     const response = await fetch('/api/notes/');
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch notes');
+      throw new Error(`Failed to fetch notes: ${response.statusText}`);
     }
     const data = await response.json();
-    return (data.notes || []) as Note[];
+    return data.notes;
   },
-});
 
-// Get all notes query
-export function useNotesQuery() {
-  return useQuery(() => notesQueryOptions());
-}
+  // Get a single note
+  async getNote(id: string): Promise<Note> {
+    const response = await fetch(`/api/notes/${id}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch note: ${response.statusText}`);
+    }
+    return await response.json();
+  },
 
-// Get single note query
-export function useNoteQuery(id: string) {
+  // Create a new note
+  async createNote(note: NoteInput): Promise<Note> {
+    // Create a plain object from the note (in case it's a store/proxy)
+    const plainNote = { 
+      title: note.title, 
+      content: note.content || '' 
+    };
+    
+    const response = await fetch('/api/notes/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(plainNote),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create note: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  },
+
+  // Update a note
+  async updateNote(note: NoteUpdateInput): Promise<Note> {
+    // Create a plain object from the note (in case it's a store/proxy)
+    const plainNote = { 
+      title: note.title, 
+      content: note.content, 
+      status: note.status 
+    };
+    
+    const response = await fetch(`/api/notes/${note.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(plainNote),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to update note: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  },
+
+  // Delete a note
+  async deleteNote(id: string): Promise<void> {
+    const response = await fetch(`/api/notes/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete note: ${response.statusText}`);
+    }
+  },
+};
+
+// Query hooks for notes
+export function useNotes() {
   return useQuery(() => ({
-    queryKey: noteKeys.detail(id),
-    queryFn: async () => {
-      const response = await fetch(`/api/notes/${id}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch note');
-      }
-      return response.json();
-    },
-    enabled: !!id,
+    queryKey: ['notes'],
+    queryFn: notesApi.getAllNotes,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   }));
 }
 
-// Create note mutation
+export function useNote(id: string) {
+  return useQuery(() => ({
+    queryKey: ['notes', id],
+    queryFn: () => notesApi.getNote(id),
+    enabled: !!id, // Only run if ID exists
+  }));
+}
+
+// Mutation hooks for notes
 export function useCreateNoteMutation() {
   const queryClient = useQueryClient();
-
-  return useMutation(() => ({
-    mutationFn: async (note: NoteInput) => {
-      const response = await fetch('/api/notes/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(note),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create note');
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      // Instead of just invalidating, we can set the new data in the cache
-      queryClient.setQueryData(noteKeys.lists(), (old: Note[] | undefined) => {
-        return old ? [data, ...old] : [data];
-      });
-      toast.success('Note created successfully');
-      // No need to invalidate here since we're setting the data directly
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to create note: ${error.message}`);
-    },
-  }));
-}
-
-// Update note mutation with optimistic updates
-export function useUpdateNoteMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation(() => ({
-    mutationFn: async ({ id, ...data }: NoteUpdateInput & { id: string }) => {
-      const response = await fetch(`/api/notes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update note');
-      }
-
-      return response.json();
-    },
-    onMutate: async (updatedNote) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: noteKeys.detail(updatedNote.id) });
-      await queryClient.cancelQueries({ queryKey: noteKeys.lists() });
-
-      // Snapshot the previous values
-      const previousNote = queryClient.getQueryData(noteKeys.detail(updatedNote.id));
-      const previousNotes = queryClient.getQueryData(noteKeys.lists());
-
-      // Optimistically update the cache
-      queryClient.setQueryData(noteKeys.detail(updatedNote.id), (old: Note | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          ...updatedNote,
-          updatedAt: new Date().toISOString(), // Optimistic update of timestamps
-        };
-      });
-
-      queryClient.setQueryData(noteKeys.lists(), (old: Note[] = []) => {
-        return old.map(note => 
-          note.id === updatedNote.id
-            ? { ...note, ...updatedNote, updatedAt: new Date().toISOString() }
-            : note
-        );
-      });
-
-      // Return a context object with the snapshotted values
-      return { previousNote, previousNotes };
-    },
-    onError: (err, updatedNote, context) => {
-      // If the mutation fails, revert back to previous values
-      if (context?.previousNote) {
-        queryClient.setQueryData(noteKeys.detail(updatedNote.id), context.previousNote);
-      }
-      if (context?.previousNotes) {
-        queryClient.setQueryData(noteKeys.lists(), context.previousNotes);
-      }
-      toast.error(`Failed to update note: ${err.message}`);
-    },
-    onSettled: (data, error, { id }) => {
-      // Invalidate related queries to refetch fresh data
-      // queryClient.invalidateQueries({ queryKey: noteKeys.detail(id) });
-      // queryClient.invalidateQueries({ queryKey: noteKeys.lists() });
-      
-      if (!error) {
-        toast.success('Note updated successfully');
-      }
-    },
-  }));
-}
-
-// Delete note mutation
-export function useDeleteNoteMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation(() => ({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/notes/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete note');
-      }
-
-      return response.json();
-    },
-    onMutate: async (id) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: noteKeys.lists() });
-
-      // Snapshot the current state
-      const previousNotes = queryClient.getQueryData(noteKeys.lists());
-
-      // Optimistically remove the note from the list
-      queryClient.setQueryData(noteKeys.lists(), (old: Note[] = []) => {
-        return old.filter(note => note.id !== id);
-      });
-
-      // Also remove the detail query if it exists
-      queryClient.removeQueries({ queryKey: noteKeys.detail(id) });
-
-      // Return context with snapshotted value
-      return { previousNotes };
-    },
-    onError: (err, id, context) => {
-      // If the mutation fails, revert back to previous values
-      if (context?.previousNotes) {
-        queryClient.setQueryData(noteKeys.lists(), context.previousNotes);
-      }
-      toast.error(`Failed to delete note: ${err.message}`);
-    },
-    onSettled: () => {
-      // Invalidate lists to refetch with updated data
-      // queryClient.invalidateQueries({ queryKey: noteKeys.lists() });
-      // queryClient.invalidateQueries({ queryKey: noteKeys.analytics() });
-    },
-    onSuccess: () => {
-      toast.success('Note deleted successfully');
-    },
-  }));
-}
-
-// Get note analytics query
-export function useNoteAnalyticsQuery() {
-  return useQuery(() => ({
-    queryKey: noteKeys.analytics(),
-    queryFn: async () => {
-      const response = await fetch('/api/notes/analytics');
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch note analytics');
-      }
-      return response.json() as Promise<NoteAnalytics>;
-    },
-  }));
-}
-
-// Archive/unarchive note mutation (convenience wrapper around update)
-export function useToggleNoteArchiveMutation() {
-  const updateNoteMutation = useUpdateNoteMutation();
   
   return useMutation(() => ({
-    mutationFn: async ({ id, currentStatus }: { id: string, currentStatus: 'active' | 'archived' }) => {
-      const newStatus = currentStatus === 'active' ? 'archived' : 'active';
-      return updateNoteMutation.mutate({ id, status: newStatus });
+    mutationFn: (note: NoteInput) => notesApi.createNote(note),
+    onSuccess: (newNote) => {
+      // Optimistically update the notes list
+      queryClient.setQueryData(['notes'], (oldData: Note[] | undefined) => {
+        return oldData ? [...oldData, newNote] : [newNote];
+      });
+      // Invalidate the cache to trigger a refetch
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   }));
+}
+
+export function useUpdateNoteMutation() {
+  const queryClient = useQueryClient();
+  
+  return useMutation(() => ({
+    mutationFn: (note: NoteUpdateInput) => notesApi.updateNote(note),
+    onMutate: async (updatedNote) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['notes'] });
+      await queryClient.cancelQueries({ queryKey: ['notes', updatedNote.id] });
+      
+      // Snapshot the previous value
+      const previousNotes = queryClient.getQueryData<Note[]>(['notes']);
+      const previousNote = queryClient.getQueryData<Note>(['notes', updatedNote.id]);
+      
+      // Optimistically update the cache
+      if (previousNotes) {
+        queryClient.setQueryData(['notes'], 
+          previousNotes.map(note => 
+            note.id === updatedNote.id 
+              ? { ...note, ...updatedNote } 
+              : note
+          )
+        );
+      }
+      
+      if (previousNote) {
+        queryClient.setQueryData(['notes', updatedNote.id], {
+          ...previousNote,
+          ...updatedNote,
+        });
+      }
+      
+      return { previousNotes, previousNote };
+    },
+    onError: (_err, _updatedNote, context: any) => {
+      // If the mutation fails, use the context we saved to rollback
+      if (context?.previousNotes) {
+        queryClient.setQueryData(['notes'], context.previousNotes);
+      }
+      if (context?.previousNote) {
+        queryClient.setQueryData(['notes', _updatedNote.id], context.previousNote);
+      }
+    },
+    onSettled: (_data, _error, variables) => {
+      // Always invalidate to ensure we have fresh data
+    //   queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['notes', variables.id] });
+    },
+  }));
+}
+
+export function useDeleteNoteMutation() {
+  const queryClient = useQueryClient();
+  
+  return useMutation(() => ({
+    mutationFn: (id: string) => notesApi.deleteNote(id),
+    onMutate: async (deletedId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['notes'] });
+      
+      // Snapshot the previous value
+      const previousNotes = queryClient.getQueryData<Note[]>(['notes']);
+      
+      // Optimistically update by removing the note
+      if (previousNotes) {
+        queryClient.setQueryData(
+          ['notes'], 
+          previousNotes.filter(note => note.id !== deletedId)
+        );
+      }
+      
+      // Remove the single note from cache
+      queryClient.removeQueries({ queryKey: ['notes', deletedId] });
+      
+      return { previousNotes };
+    },
+    onError: (_err, _deletedId, context: any) => {
+      // If the mutation fails, use the context we saved to rollback
+      if (context?.previousNotes) {
+        queryClient.setQueryData(['notes'], context.previousNotes);
+      }
+    },
+    onSettled: () => {
+      // Always invalidate to ensure we have fresh data
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
+  }));
+}
+
+// A convenient hook for managing note editing state
+export function useNoteEditor() {
+  const [note, setNote] = createStore<NoteInput | NoteUpdateInput>({
+    title: '',
+    content: '',
+  });
+  
+  const resetNote = () => setNote({ title: '', content: '' });
+  
+  const setNoteForEditing = (existingNote: Note) => {
+    setNote({
+      id: existingNote.id,
+      title: existingNote.title,
+      content: existingNote.content,
+      status: existingNote.status
+    });
+  };
+  
+  return { note, setNote, resetNote, setNoteForEditing };
 } 
