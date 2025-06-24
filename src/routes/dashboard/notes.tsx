@@ -1,11 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/solid-router';
+import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal, For, Show } from 'solid-js';
 import { Button } from '~/components/ui/button';
 import { Icon } from '~/components/ui/icon';
 import { NoteCard } from '~/components/NoteCard';
 import { NoteEditor } from '~/components/NoteEditor';
 import { useNotes, useCreateNoteMutation, useUpdateNoteMutation, useDeleteNoteMutation, useNoteEditor, type Note } from '~/lib/notes-actions';
-import { createEffect } from 'solid-js';
 import { Spinner } from '../auth';
 import { toast } from 'solid-sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '~/components/ui/dialog';
