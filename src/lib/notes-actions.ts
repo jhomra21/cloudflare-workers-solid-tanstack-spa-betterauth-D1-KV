@@ -183,7 +183,7 @@ export function useUpdateNoteMutation() {
     },
     onSettled: (_data, _error, variables) => {
       // Always invalidate to ensure we have fresh data
-    //   queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
       queryClient.invalidateQueries({ queryKey: ['notes', variables.id] });
     },
   }));

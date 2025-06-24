@@ -8,6 +8,7 @@ import { useNotes, useCreateNoteMutation, useUpdateNoteMutation, useDeleteNoteMu
 import { createEffect } from 'solid-js';
 import { Spinner } from '../auth';
 import { toast } from 'solid-sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '~/components/ui/dialog';
 
 export function NotesPage() {
   // Query and mutations
@@ -209,12 +210,15 @@ export function NotesPage() {
         />
         
         {/* Delete Confirmation Dialog */}
-        <div class={`fixed inset-0 bg-background backdrop-blur-sm bg-opacity-40 z-50 flex items-center justify-center ${deleteDialogOpen() ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity`}>
-          <div class="bg-background p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 class="text-lg font-semibold mb-4">Delete Note?</h2>
-            <p>Are you sure you want to delete the note "{noteToDelete()?.title}"? This action cannot be undone.</p>
-            
-            <div class="flex justify-end space-x-3 mt-6">
+        <Dialog open={deleteDialogOpen()} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Note?</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the note "{noteToDelete()?.title}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
               <Button 
                 variant="outline" 
                 onClick={() => setDeleteDialogOpen(false)}
@@ -230,9 +234,9 @@ export function NotesPage() {
                   Delete
                 </Show>
               </Button>
-            </div>
-          </div>
-        </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
