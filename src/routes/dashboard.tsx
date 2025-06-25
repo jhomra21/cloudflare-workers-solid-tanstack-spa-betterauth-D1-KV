@@ -31,9 +31,15 @@ import {
   function DashboardPage() {
     const [isScrolled, setIsScrolled] = createSignal(false);
     
+    let scrollTimer: number;
     const handleScroll = (e: Event) => {
-      const target = e.target as HTMLDivElement;
-      setIsScrolled(target.scrollTop > 10);
+      // Throttle scroll events for better performance
+      if (scrollTimer) return;
+      scrollTimer = requestAnimationFrame(() => {
+        const target = e.target as HTMLDivElement;
+        setIsScrolled(target.scrollTop > 10);
+        scrollTimer = 0;
+      });
     };
     
     return (
@@ -76,7 +82,7 @@ import {
               <div class="flex h-screen w-screen overflow-hidden bg-muted/40">
                 <AppSidebar />
                 <SidebarInset class="flex-grow min-w-0 bg-background rounded-xl shadow-md transition-all duration-150 ease-in-out flex flex-col">
-                  <header class={`flex h-16 shrink-0 items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-background/95 backdrop-blur-sm sticky top-0 z-20 md:relative md:z-10 transition-shadow duration-200 ${isScrolled() ? 'shadow-md' : ''}`}>
+                  <header class={`flex h-16 shrink-0 items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-background/95 backdrop-blur-sm sticky top-0 z-20 md:relative md:z-10 transition-shadow duration-150 will-change-scroll-position ${isScrolled() ? 'shadow-md' : ''}`}>
                     <div class="flex items-center gap-2 px-4">
                       <Tooltip openDelay={500}>
                         <TooltipTrigger>
@@ -91,7 +97,7 @@ import {
                     </div>
                   </header>
                   {/* Opacity gradient overlay positioned right under header for fade effect */}
-                  <div class={`absolute top-16 left-0 right-0 h-6 bg-gradient-to-b from-background/95 via-background/40 to-transparent pointer-events-none z-30 transition-opacity duration-200 ${isScrolled() ? 'opacity-100' : 'opacity-0'}`}></div>
+                  <div class={`absolute top-16 left-0 right-0 h-6 bg-gradient-to-b from-background/90 to-transparent pointer-events-none z-30 transform transition-transform duration-200 will-change-transform ${isScrolled() ? 'translate-y-0' : 'translate-y-[-100%]'}`}></div>
                   <div onScroll={handleScroll} class="flex-grow overflow-y-auto p-4 relative min-h-0">
                     <Suspense fallback={
                       <div class="w-full h-full flex items-center justify-center">
