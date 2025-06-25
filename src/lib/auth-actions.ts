@@ -135,33 +135,3 @@ export function useSignOutMutation() {
     },
   }));
 }
-
-type UpdatePasswordCredentials = {
-  currentPassword: string;
-  newPassword: string;
-};
-
-/**
- * Updates user password with current password verification
- */
-export function useUpdatePasswordMutation() {
-  return useMutation(() => ({
-    mutationFn: async (credentials: UpdatePasswordCredentials) => {
-      const response = await fetch('/api/update-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update password');
-      }
-
-      return data;
-    },
-  }));
-} 

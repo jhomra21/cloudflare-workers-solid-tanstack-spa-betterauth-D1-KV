@@ -57,44 +57,4 @@ app.all('/api/auth/*', (c) => {
 // Mount the notes API routes
 app.route('/api/notes/', notesApi);
 
-// Update password endpoint - following Better Auth server-side pattern
-app.put('/api/update-password', async (c) => {
-  try {
-    // Use session from middleware context (Better Auth Hono pattern)
-    const user = c.get('user');
-    const session = c.get('session');
-
-    if (!user || !session) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-
-    const { currentPassword, newPassword } = await c.req.json();
-
-    if (!currentPassword || !newPassword) {
-      return c.json({ error: 'Current password and new password are required' }, 400);
-    }
-
-    const auth = getAuth(c.env);
-
-    // Verify current password by attempting sign-in (Better Auth way)
-    try {
-      await auth.api.signInEmail({
-        body: { email: user.email, password: currentPassword }
-      });
-    } catch (signInError) {
-      return c.json({ error: 'Current password is incorrect' }, 400);
-    }
-
-    // Use Better Auth's server-side password update pattern
-    const ctx = await auth.$context;
-    const hashedPassword = await ctx.password.hash(newPassword);
-    await ctx.internalAdapter.updatePassword(user.id, hashedPassword);
-
-    return c.json({ success: true });
-  } catch (error) {
-    console.error('Password update error:', error);
-    return c.json({ error: 'Failed to update password' }, 500);
-  }
-});
-
 export default app;

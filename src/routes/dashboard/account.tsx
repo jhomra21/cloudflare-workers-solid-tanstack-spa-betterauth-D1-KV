@@ -16,7 +16,7 @@ import {
 	DialogTrigger
 } from '~/components/ui/dialog';
 import { sessionQueryOptions } from '~/lib/auth-guard';
-import { useUpdateUserMutation, useDeleteUserMutation, useUpdatePasswordMutation } from '~/lib/auth-actions';
+import { useUpdateUserMutation, useDeleteUserMutation } from '~/lib/auth-actions';
 
 function getInitials(name: string) {
 	if (!name || name === 'Guest') return name.charAt(0).toUpperCase() || 'G';
@@ -40,18 +40,13 @@ function AccountPage() {
 		}
 	});
 
-	// Password update state
-	const [currentPassword, setCurrentPassword] = createSignal('');
-	const [newPassword, setNewPassword] = createSignal('');
-	const [confirmPassword, setConfirmPassword] = createSignal('');
-
+	
 	// Account deletion state
 	const [showDeleteDialog, setShowDeleteDialog] = createSignal(false);
 	const [deletePassword, setDeletePassword] = createSignal('');
 	const [deleteConfirmation, setDeleteConfirmation] = createSignal('');
 
 	const updateUserMutation = useUpdateUserMutation();
-	const updatePasswordMutation = useUpdatePasswordMutation();
 	const deleteUserMutation = useDeleteUserMutation();
 
 	const handleSave = (e: Event) => {
@@ -71,38 +66,6 @@ function AccountPage() {
 			success: 'Account updated successfully!',
 			error: (err) => `Failed to update: ${err.message}`
 		});
-	};
-
-	const handleUpdatePassword = (e: Event) => {
-		e.preventDefault();
-
-		if (newPassword() !== confirmPassword()) {
-			toast.error('New passwords do not match');
-			return;
-		}
-
-		if (newPassword().length < 8) {
-			toast.error('New password must be at least 8 characters');
-			return;
-		}
-
-		const promise = updatePasswordMutation.mutateAsync({
-			currentPassword: currentPassword(),
-			newPassword: newPassword(),
-		});
-
-		toast.promise(promise, {
-			loading: 'Updating password...',
-			success: 'Password updated successfully!',
-			error: (err) => `Failed to update password: ${err.message}`
-		});
-
-		// Clear form on success
-		promise.then(() => {
-			setCurrentPassword('');
-			setNewPassword('');
-			setConfirmPassword('');
-		}).catch(() => { });
 	};
 
 	const handleDeleteAccount = () => {
@@ -211,80 +174,6 @@ function AccountPage() {
 					</CardFooter>
 				</form>
 			</Card>
-
-			{/* Password Security */}
-			<Show when={user()?.email?.includes('@')}>
-				<Card>
-					<CardHeader>
-						<CardTitle>Password & Security</CardTitle>
-					</CardHeader>
-
-					<form onSubmit={handleUpdatePassword} class="space-y-4">
-						<CardContent>
-							<div class="space-y-2">
-							<label for="current-password" class="text-sm font-medium">
-								Current Password
-							</label>
-							<Input
-								id="current-password"
-								type="password"
-								placeholder="Enter your current password"
-								value={currentPassword()}
-								onChange={setCurrentPassword}
-								required
-							/>
-							</div>
-
-							<div class="space-y-2">
-								<label for="new-password" class="text-sm font-medium">
-									New Password
-								</label>
-								<Input
-									id="new-password"
-									type="password"
-									placeholder="Enter your new password"
-									value={newPassword()}
-									onChange={setNewPassword}
-									required
-								/>
-								<p class="text-xs text-muted-foreground">
-									Password must be at least 8 characters long.
-								</p>
-							</div>
-
-							<div class="space-y-2">
-								<label for="confirm-password" class="text-sm font-medium">
-									Confirm New Password
-								</label>
-								<Input
-									id="confirm-password"
-									type="password"
-									placeholder="Confirm your new password"
-									value={confirmPassword()}
-									onChange={setConfirmPassword}
-									required
-								/>
-							</div>
-						</CardContent>
-						<CardFooter class="flex justify-end">
-							<Button
-								type="submit"
-								variant="sf-compute"
-								disabled={
-									updatePasswordMutation.isPending ||
-									!currentPassword() ||
-									!newPassword() ||
-									!confirmPassword() ||
-									newPassword() !== confirmPassword()
-								}
-							>
-								{updatePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
-							</Button>
-						</CardFooter>
-					</form>
-
-				</Card>
-			</Show>
 
 			{/* Danger Zone */}
 			<Card class="border-destructive/20">

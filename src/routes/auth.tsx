@@ -1,14 +1,16 @@
+// This file contains commented out email and password log in with better-auth.
+// It is not used in the app due to worker free tier CPU limits and password hashing, but is kept here for reference.
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/solid-router';
 import { Show, createSignal, createEffect, onCleanup } from 'solid-js';
 import { useQuery, type QueryObserverResult } from '@tanstack/solid-query';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
+// import { Input } from '~/components/ui/input';
+// import { Label } from '~/components/ui/label';
 import { sessionQueryOptions } from '~/lib/auth-guard';
 import {  
-  useSignInMutation, 
-  useSignUpMutation, 
+  // useSignInMutation, 
+  // useSignUpMutation, 
   useGoogleSignInMutation 
 } from '~/lib/auth-actions';
 import type { User, Session } from 'better-auth';
@@ -50,8 +52,8 @@ function AuthPage() {
     setApiError(error.message);
   };
 
-  const signInMutation = useSignInMutation();
-  const signUpMutation = useSignUpMutation();
+  // const signInMutation = useSignInMutation();
+  // const signUpMutation = useSignUpMutation();
   const googleSignInMutation = useGoogleSignInMutation();
 
   createEffect(() => {
@@ -125,11 +127,12 @@ function AuthPage() {
           </Show>
           <Show when={!sessionQuery.isPending && !sessionQuery.data}>
             <div class="space-y-4">
+              {/* Sign In Form 
                 <div 
                     class="relative transition-[height] duration-300 ease-in-out"
                     style={{ height: containerHeight().toString() }}
                 >
-                    {/* Sign In Form */}
+                  
                     <div 
                         ref={signInFormRef}
                         class={`w-full absolute top-0 left-0 transition-all duration-300 ease-in-out transform ${activeTab() === 'signIn' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'}`}
@@ -156,7 +159,8 @@ function AuthPage() {
                             </Button>
                         </form>
                     </div>
-                    {/* Sign Up Form */}
+                    */}
+                    {/* Sign Up Form 
                     <div 
                         ref={signUpFormRef}
                         class={`w-full absolute top-0 left-0 transition-all duration-300 ease-in-out transform ${activeTab() === 'signUp' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'}`}
@@ -198,9 +202,9 @@ function AuthPage() {
                 <div class="relative flex justify-center text-xs uppercase">
                   <span class="bg-card px-2 text-muted-foreground">Or continue with</span>
                 </div>
-              </div>
+              </div>*/}
 
-              <Button variant="outline" class="w-full" onClick={() => {
+              <Button variant="outline" class="w-full mt-4" onClick={() => {
                 setLoadingAction('google');
                 googleSignInMutation.mutate(undefined, {
                     onError: (err) => {
