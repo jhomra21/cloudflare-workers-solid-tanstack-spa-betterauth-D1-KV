@@ -3,7 +3,8 @@ import { Show, Switch, Match, splitProps, type ComponentProps } from "solid-js";
 export type IconName = "panelLeft" | "panelLeftClose" | "house" | "dumbbell" | "history" | "x" | "database" 
 | "music" | "musicNote" | "server" | "chevronupdown" | "sparkles" | "badgecheck" | "creditcard" | "bell" | 
 "logout" | "gear" | "user" | "login" | "stickynote" | "google" | 'image' | 'volume2' | 'mic' | 'micOff' |
-"archive" | "archive-restore" | "clock" | "calendar" | "file-clock" | "file-plus" | "plus" | "file";
+"archive" | "archive-restore" | "clock" | "calendar" | "file-clock" | "file-plus" | "plus" | "file" | "square-check"
+| "edit" | "check";
 
 // Define props for the Icon component
 // We want to accept any standard SVG element attributes
@@ -238,6 +239,23 @@ const FileIcon = (props: ComponentProps<"svg">) => (
   </svg>
 );
 
+const SquareCheckIcon = (props: ComponentProps<"svg">) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-check-icon lucide-square-check" {...props}><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+);
+
+const EditIcon = (props: ComponentProps<"svg">) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {...props}>
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+
+const CheckIcon = (props: ComponentProps<"svg">) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {...props}>
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
 export const Icon = (props: IconProps) => {
   const [local, others] = splitProps(props, ["name", "class", "width", "height"]);
   
@@ -247,6 +265,9 @@ export const Icon = (props: IconProps) => {
 
   return (
     <Switch fallback={<Show when={import.meta.env.DEV}><p>Icon not found: {local.name}</p></Show>}>
+      <Match when={local.name === "square-check"}>
+        <SquareCheckIcon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
+      </Match>
       <Match when={local.name === "file"}>
         <FileIcon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
       </Match>
@@ -345,6 +366,12 @@ export const Icon = (props: IconProps) => {
       </Match>
       <Match when={local.name === "volume2"}>
         <Volume2Icon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
+      </Match>
+      <Match when={local.name === "edit"}>
+        <EditIcon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
+      </Match>
+      <Match when={local.name === "check"}>
+        <CheckIcon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
       </Match>
     </Switch>
   );

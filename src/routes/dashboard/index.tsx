@@ -36,6 +36,13 @@ export function DashboardIndex() {
       icon: '📝',
       path: '/dashboard/notes',
       color: 'border-purple-200 dark:border-purple-800'
+    },
+    {
+      title: 'Tasks',
+      description: 'Create and manage your tasks from Convex database',
+      icon: '🔄',
+      path: '/dashboard/tasks',
+      color: 'border-blue-200 dark:border-blue-800'
     }
     // to add more items here, follow the format below
     //,

@@ -17,6 +17,7 @@ import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AuthImport } from './routes/auth'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
+import { Route as DashboardTasksImport } from './routes/dashboard/tasks'
 import { Route as DashboardNotesImport } from './routes/dashboard/notes'
 import { Route as DashboardAccountImport } from './routes/dashboard/account'
 
@@ -49,6 +50,12 @@ const IndexRoute = IndexImport.update({
 const DashboardIndexRoute = DashboardIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+
+const DashboardTasksRoute = DashboardTasksImport.update({
+  id: '/tasks',
+  path: '/tasks',
   getParentRoute: () => DashboardRoute,
 } as any)
 
@@ -111,6 +118,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof DashboardNotesImport
       parentRoute: typeof DashboardImport
     }
+    '/dashboard/tasks': {
+      id: '/dashboard/tasks'
+      path: '/tasks'
+      fullPath: '/dashboard/tasks'
+      preLoaderRoute: typeof DashboardTasksImport
+      parentRoute: typeof DashboardImport
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
@@ -133,12 +147,14 @@ declare module '@tanstack/solid-router' {
 interface DashboardRouteChildren {
   DashboardAccountRoute: typeof DashboardAccountRoute
   DashboardNotesRoute: typeof DashboardNotesRoute
+  DashboardTasksRoute: typeof DashboardTasksRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAccountRoute: DashboardAccountRoute,
   DashboardNotesRoute: DashboardNotesRoute,
+  DashboardTasksRoute: DashboardTasksRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -152,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/notes': typeof DashboardNotesRoute
+  '/dashboard/tasks': typeof DashboardTasksRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
@@ -161,6 +178,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/notes': typeof DashboardNotesRoute
+  '/dashboard/tasks': typeof DashboardTasksRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
@@ -172,6 +190,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/notes': typeof DashboardNotesRoute
+  '/dashboard/tasks': typeof DashboardTasksRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
@@ -184,6 +203,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/account'
     | '/dashboard/notes'
+    | '/dashboard/tasks'
     | '/dashboard/'
     | '/api/auth/callback/google'
   fileRoutesByTo: FileRoutesByTo
@@ -192,6 +212,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard/account'
     | '/dashboard/notes'
+    | '/dashboard/tasks'
     | '/dashboard'
     | '/api/auth/callback/google'
   id:
@@ -201,6 +222,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/account'
     | '/dashboard/notes'
+    | '/dashboard/tasks'
     | '/dashboard/'
     | '/api/auth/callback/google'
   fileRoutesById: FileRoutesById
@@ -247,6 +269,7 @@ export const routeTree = rootRoute
       "children": [
         "/dashboard/account",
         "/dashboard/notes",
+        "/dashboard/tasks",
         "/dashboard/"
       ]
     },
@@ -256,6 +279,10 @@ export const routeTree = rootRoute
     },
     "/dashboard/notes": {
       "filePath": "dashboard/notes.tsx",
+      "parent": "/dashboard"
+    },
+    "/dashboard/tasks": {
+      "filePath": "dashboard/tasks.tsx",
       "parent": "/dashboard"
     },
     "/dashboard/": {

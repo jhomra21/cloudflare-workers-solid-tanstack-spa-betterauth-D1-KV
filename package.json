@@ -26,6 +26,7 @@
     "better-auth": "^1.2.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.25.0",
     "hono": "^4.7.10",
     "kysely": "^0.28.2",
     "kysely-d1": "^0.4.0",
