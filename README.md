@@ -1,4 +1,4 @@
-# Cloudflare Workers Vite Plugin + Vite + SolidJS and Tanstack Router + Hono + Better Auth 
+# Cloudflare Workers Vite Plugin + Vite + SolidJS and Tanstack Router + Hono + Better Auth + Convex
 
 > [!NOTE]
 > 🚀 **Live Demo:** Check out the deployed application here: **[test-workers-solid-tanstack-spa-betterauth-d1-kv.jhonra121.workers.dev](https://test-workers-solid-tanstack-spa-betterauth-d1-kv.jhonra121.workers.dev/)**
@@ -15,7 +15,7 @@ A comprehensive template for building modern web applications using SolidJS on t
 - **Hono.js API**: Lightweight, fast API layer running on Cloudflare Workers.
 - **🔐 Robust Authentication**: Secure system using `better-auth` with Google OAuth and email/password support.
 - **Cloudflare Stack**: Leverages Cloudflare D1, KV, and Workers for a scalable and performant infrastructure.
-
+- **Convex**: Real-time database and backend platform.
 ---
 
 ## ✨ Application Preview
@@ -219,6 +219,7 @@ This project uses a Cloudflare-centric database strategy:
 
 - **Cloudflare D1** (SQLite): Centralized storage for authentication data (users, accounts, etc.) and application data.
 - **Cloudflare KV**: Utilized for session storage, enabling fast edge validation of user sessions.
+- **Convex**: Real-time database and backend application platform for managing application data like tasks.
 
 The backend API is built with **Hono.js** and runs on Cloudflare Workers, providing a lightweight and high-performance serverless foundation.
 
@@ -278,3 +279,21 @@ To enable Google Sign-In for your application, you need to create OAuth 2.0 cred
 4.  Click **Save**. Google will provide you with a **Client ID** and a **Client Secret**.
 
 5.  You must add these values as secrets for your project, either in your `.dev.vars` file for local development or in the Cloudflare Dashboard for production.
+
+## Convex Integration Setup
+This project uses [Convex](https://www.convex.dev/) for real-time data management. To connect your frontend application to your Convex backend, you must configure a build-time environment variable in your Cloudflare Worker settings.
+
+> [!IMPORTANT]
+> These are **Build variables**, which are different from the runtime **Environment Variables** and **Secrets** you configured earlier. Build variables are injected when Cloudflare builds your application, not when it runs.
+
+1. In your Cloudflare dashboard, navigate to your Worker (**Workers & Pages** > **your-project-name**).
+2. Go to the **Settings** tab and select the **Build** option in the sub-navigation. Or just click on the settings link in the Build and deployments card.
+3. Find the **Variables and secrets** section in the Build section.
+4. Click **+ Add** and create a new variable:
+    - **Name**: `VITE_CONVEX_URL`
+    - **Value**: Your full Convex deployment URL (e.g., `https://great-lemur-123.convex.cloud`).
+    - **Do NOT encrypt this value.** It needs to be available as plain text during the build process.
+
+![Cloudflare Build Variables and Secrets](readme_assets/cf-workers-build-vars-and-secrets.png)
+
+This ensures that your application knows where to find your Convex backend when it's compiled by Vite. After adding the variable, you may need to trigger a new deployment for the changes to take effect.
