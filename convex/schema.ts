@@ -6,8 +6,8 @@ export default defineSchema({
     imageUrl: v.string(),
     model: v.optional(v.string()),
     prompt: v.string(),
-    seed: v.optional(v.float64()),
-    steps: v.optional(v.float64()),
+    seed: v.optional(v.number()),
+    steps: v.optional(v.number()),
     userId: v.string(),
   }).index("by_userId", ["userId"]),
   tasks: defineTable({
