@@ -1,6 +1,6 @@
 {
   "name": "test-workers-solid-tanstack-spa-betterauth-d1-kv",
-  "compatibility_date": "2025-06-01",
+  "compatibility_date": "2025-06-17",
   "main": "api/index.ts",
   "compatibility_flags": [
     "nodejs_compat"
