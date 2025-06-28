@@ -173,24 +173,81 @@ function TaskList() {
   const userId = createMemo(() => context()?.session?.user?.id);
   
   // useQuery takes a Convex query function and a function that returns the arguments
-  const tasks = useQuery(
+  const query = useQuery(
     convexApi.tasks.getTasks, 
-    () => userId() ? { userId: userId()! } : { userId: "" }
+    () => userId() ? { userId: userId()! } : null
   );
   
   return (
     <div>
-      <For each={tasks()} fallback={<p>Loading...</p>}>
+      {query.isLoading() && <p>Loading tasks...</p>}
+      
+      {query.error() && (
+        <p class="text-red-500">Error: {query.error()?.message}</p>
+      )}
+      
+      <For each={query.data()} fallback={null}>
         {(task) => (
           <div>{task.text}</div>
         )}
       </For>
+      
+      {query.error() && (
+        <button onClick={() => query.reset()}>Retry</button>
+      )}
     </div>
   );
 }
 ```
 
 ### Writing Data with Mutations
+
+#### Using useMutation Hook (Recommended)
+
+```tsx
+import { useMutation, convexApi } from "~/lib/convex";
+import { toast } from "solid-sonner";
+
+function CreateTask() {
+  const [text, setText] = createSignal("");
+  const mutation = useMutation();
+  
+  const addTask = async (e: Event) => {
+    e.preventDefault();
+    if (!text().trim()) return;
+    
+    try {
+      await mutation.mutate(convexApi.tasks.createTask, { 
+        text: text(),
+        userId: currentUserId
+      });
+      
+      toast.success("Task created");
+      setText("");
+    } catch (error) {
+      toast.error("Failed to create task");
+    }
+  };
+  
+  return (
+    <form onSubmit={addTask}>
+      <input 
+        value={text()} 
+        onInput={(e) => setText(e.target.value)}
+        disabled={mutation.isLoading()}
+      />
+      <button type="submit" disabled={mutation.isLoading()}>
+        {mutation.isLoading() ? "Creating..." : "Add Task"}
+      </button>
+      {mutation.error() && (
+        <p class="text-red-500">{mutation.error()?.message}</p>
+      )}
+    </form>
+  );
+}
+```
+
+#### Using Direct Client (Alternative)
 
 ```tsx
 import { convexClient, convexApi } from "~/lib/convex";
@@ -222,6 +279,42 @@ function CreateTask() {
       <input value={text()} onInput={(e) => setText(e.target.value)} />
       <button type="submit">Add Task</button>
     </form>
+  );
+}
+```
+
+### Running Actions
+
+```tsx
+import { useAction, convexApi } from "~/lib/convex";
+
+function EmailSender() {
+  const [email, setEmail] = createSignal("");
+  const action = useAction();
+  
+  const sendEmail = async () => {
+    try {
+      await action.execute(convexApi.email.sendWelcomeEmail, {
+        to: email(),
+        subject: "Welcome!"
+      });
+      toast.success("Email sent!");
+    } catch (error) {
+      toast.error("Failed to send email");
+    }
+  };
+  
+  return (
+    <div>
+      <input 
+        value={email()} 
+        onInput={(e) => setEmail(e.target.value)}
+        disabled={action.isLoading()}
+      />
+      <button onClick={sendEmail} disabled={action.isLoading()}>
+        {action.isLoading() ? "Sending..." : "Send Email"}
+      </button>
+    </div>
   );
 }
 ```

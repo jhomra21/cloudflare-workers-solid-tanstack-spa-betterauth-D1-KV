@@ -15,7 +15,7 @@ A comprehensive template for building modern web applications using SolidJS on t
 - **Hono.js API**: Lightweight, fast API layer running on Cloudflare Workers.
 - **🔐 Robust Authentication**: Secure system using `better-auth` with Google OAuth and email/password support.
 - **Cloudflare Stack**: Leverages Cloudflare D1, KV, and Workers for a scalable and performant infrastructure.
-- **Convex**: Real-time database and backend platform.
+- **🔄 Convex Integration**: Real-time database with custom SolidJS hooks, built-in loading states, and comprehensive error handling.
 ---
 
 ## ✨ Application Preview
@@ -280,20 +280,90 @@ To enable Google Sign-In for your application, you need to create OAuth 2.0 cred
 
 5.  You must add these values as secrets for your project, either in your `.dev.vars` file for local development or in the Cloudflare Dashboard for production.
 
-## Convex Integration Setup
-This project uses [Convex](https://www.convex.dev/) for real-time data management. To connect your frontend application to your Convex backend, you must configure a build-time environment variable in your Cloudflare Worker settings.
+## 🔗 Convex Integration
+
+This project includes a comprehensive [Convex](https://www.convex.dev/) integration for real-time data management with custom SolidJS hooks that provide excellent developer experience.
+
+### 🚀 Key Features
+
+- **Custom SolidJS Hooks**: Type-safe `useQuery`, `useMutation`, and `useAction` hooks designed specifically for SolidJS reactivity
+- **Built-in Loading States**: Automatic loading indicators for all data operations
+- **Error Handling**: Comprehensive error states with retry functionality
+- **Optimistic Updates**: Real-time updates with efficient reconciliation
+- **Type Safety**: Full TypeScript support with proper Convex function typing
+
+### 📋 Quick Usage Examples
+
+```tsx
+// Reading data with loading and error states
+const tasksQuery = useQuery(api.tasks.getTasks, () => ({ userId: userId() }));
+
+if (tasksQuery.isLoading()) return <div>Loading...</div>;
+if (tasksQuery.error()) return <div>Error: {tasksQuery.error()?.message}</div>;
+
+const tasks = tasksQuery.data() || [];
+```
+
+```tsx
+// Creating data with built-in loading states
+const createTaskMutation = useMutation();
+
+const handleSubmit = async () => {
+  try {
+    await createTaskMutation.mutate(api.tasks.create, { text: "New task" });
+    toast.success("Task created!");
+  } catch (error) {
+    toast.error("Failed to create task");
+  }
+};
+
+// Automatic loading state management
+<button disabled={createTaskMutation.isLoading()}>
+  {createTaskMutation.isLoading() ? "Creating..." : "Create Task"}
+</button>
+```
+
+```tsx
+// Running actions (external API calls, etc.)
+const emailAction = useAction();
+
+const sendEmail = () => emailAction.execute(api.email.send, { to: "user@example.com" });
+```
+
+### 🔧 Setup Instructions
+
+#### 1. Environment Configuration
+
+Configure your Convex URL as a **build variable** in Cloudflare Workers:
 
 > [!IMPORTANT]
-> These are **Build variables**, which are different from the runtime **Environment Variables** and **Secrets** you configured earlier. Build variables are injected when Cloudflare builds your application, not when it runs.
+> These are **Build variables**, not runtime environment variables. Build variables are injected during compilation.
 
 1. In your Cloudflare dashboard, navigate to your Worker (**Workers & Pages** > **your-project-name**).
-2. Go to the **Settings** tab and select the **Build** option in the sub-navigation. Or just click on the settings link in the Build and deployments card.
-3. Find the **Variables and secrets** section in the Build section.
-4. Click **+ Add** and create a new variable:
+2. Go to **Settings** > **Build** in the sub-navigation.
+3. Find the **Variables and secrets** section.
+4. Click **+ Add** and create:
     - **Name**: `VITE_CONVEX_URL`
-    - **Value**: Your full Convex deployment URL (e.g., `https://great-lemur-123.convex.cloud`).
-    - **Do NOT encrypt this value.** It needs to be available as plain text during the build process.
+    - **Value**: Your Convex deployment URL (e.g., `https://great-lemur-123.convex.cloud`)
+    - **Do NOT encrypt** - leave as plain text for build process
 
 ![Cloudflare Build Variables and Secrets](readme_assets/cf-workers-build-vars-and-secrets.png)
 
-This ensures that your application knows where to find your Convex backend when it's compiled by Vite. After adding the variable, you may need to trigger a new deployment for the changes to take effect.
+#### 2. Implementation Details
+
+The integration is built around three main files:
+
+- **`src/lib/convex.ts`**: Core hooks and Convex client setup
+- **`convex/schema.ts`**: Database schema definitions
+- **`convex/tasks.ts`**: Server-side functions (queries, mutations, actions)
+
+### 📚 Detailed Documentation
+
+For comprehensive usage examples, server function patterns, and best practices, see our dedicated **[Convex Integration Guide](convex/README.md)**.
+
+This guide covers:
+- Complete hook API reference
+- Server function examples (queries, mutations, actions)
+- Error handling patterns
+- Loading state management
+- Real-world component examples
