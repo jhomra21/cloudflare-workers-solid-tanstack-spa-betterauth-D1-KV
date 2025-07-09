@@ -1,15 +1,14 @@
-import { createFileRoute, Link, useRouteContext } from '@tanstack/solid-router';
-import { For, createMemo, children, Show } from 'solid-js';
+import { createFileRoute, Link } from '@tanstack/solid-router';
+import { For, children, Show, createMemo } from 'solid-js';
 import { useMutation } from '@tanstack/solid-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
-import { useSignOutMutation } from '~/lib/auth-actions';
+import { useSignOutMutation, useCurrentUser } from '~/lib/auth-actions';
 import { Spinner } from '../auth';
 
 
 export function DashboardIndex() {
-  const context = useRouteContext({ from: '/dashboard' });
-  const user = createMemo(() => context()?.session?.user);
+  const user = useCurrentUser();
   const signOutMutation = useSignOutMutation();
 
   const testApiMutation = useMutation(() => ({
@@ -92,7 +91,7 @@ export function DashboardIndex() {
   };
 
   return (
-    <div class="container py-8 px-4 mx-auto max-w-5xl flex flex-col min-h-screen">
+    <div class="px-1 py-4 flex flex-col min-h-screen">
       <div class="flex-grow">
         <div class="mb-10">
           <h1 class="text-2xl font-semibold mb-2">Welcome, {user()?.name || 'User'}</h1>
@@ -179,6 +178,10 @@ export function DashboardIndex() {
                 <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
                 Notes CRUD with D1
               </li>  
+              <li class="flex items-center gap-2"> 
+                <div class="h-1 w-1 rounded-full bg-muted-foreground"></div>
+                Todo list with Convex database
+              </li>
             </ul>
           </CardContent>
           <CardFooter>

@@ -1,5 +1,5 @@
-import { For, createSignal, Show, onMount, onCleanup, createMemo } from "solid-js";
-import { createFileRoute, useRouteContext } from "@tanstack/solid-router";
+import { For, createSignal, Show, onMount, onCleanup } from "solid-js";
+import { createFileRoute } from "@tanstack/solid-router";
 import { toast } from "solid-sonner";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -7,12 +7,12 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { convexApi, useQuery, useMutation } from "~/lib/convex";
 import { Icon } from "~/components/ui/icon";
+import { useCurrentUserId } from "~/lib/auth-actions";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import * as TextFieldPrimitive from "@kobalte/core/text-field";
 
 function TasksPage() {
-  const context = useRouteContext({ from: '/dashboard' });
-  const userId = createMemo(() => context()?.session?.user?.id);
+  const userId = useCurrentUserId();
   const tasksQuery = useQuery(
     convexApi.tasks.getTasks, 
     () => userId() ? { userId: userId()! } : null
@@ -179,7 +179,7 @@ function TasksPage() {
   });
 
   return (
-    <div class="container mx-auto max-w-5xl px-4 py-8 min-h-screen">
+    <div class="px-1 py-4 min-h-screen">
       <div class="flex flex-col space-y-8">
         {/* Header */}
         <div class="flex justify-between items-center">

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
-import { createSignal, createMemo, Show, createEffect } from 'solid-js';
-import { useQuery } from '@tanstack/solid-query';
+import { createSignal, Show, createEffect } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
@@ -15,8 +14,7 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '~/components/ui/dialog';
-import { sessionQueryOptions } from '~/lib/auth-guard';
-import { useUpdateUserMutation, useDeleteUserMutation } from '~/lib/auth-actions';
+import { useUpdateUserMutation, useDeleteUserMutation, useCurrentUser } from '~/lib/auth-actions';
 
 function getInitials(name: string) {
 	if (!name || name === 'Guest') return name.charAt(0).toUpperCase() || 'G';
@@ -30,8 +28,7 @@ function getInitials(name: string) {
 }
 
 function AccountPage() {
-	const sessionQuery = useQuery(() => sessionQueryOptions());
-	const user = createMemo(() => sessionQuery.data?.user);
+	const user = useCurrentUser();
 	const [name, setName] = createSignal('');
 
 	createEffect(() => {
@@ -86,7 +83,7 @@ function AccountPage() {
 	};
 
 	return (
-		<div class="container py-8 px-4 mx-auto max-w-5xl space-y-8">
+		<div class="px-1 py-4 space-y-8">
 			<div>
 				<h1 class="text-3xl font-bold tracking-tight">Account Settings</h1>
 				<p class="text-muted-foreground mt-1">Manage your account, preferences, and data.</p>

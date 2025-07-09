@@ -114,7 +114,7 @@ export function NotesPage() {
   };
 
   return (
-    <div class="container mx-auto max-w-5xl px-4 py-8 min-h-screen">
+    <div class="px-1 py-4 min-h-screen">
       <div class="flex flex-col space-y-8">
         {/* Header */}
         <div class="flex justify-between items-center">
