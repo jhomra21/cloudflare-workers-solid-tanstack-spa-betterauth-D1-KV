@@ -1,7 +1,8 @@
-import { useQueryClient, useMutation } from '@tanstack/solid-query';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/solid-query';
 import { useNavigate, useRouteContext } from '@tanstack/solid-router';
 import { authClient } from './auth-client';
 import { createMemo } from 'solid-js';
+import { sessionQueryOptions } from './auth-guard';
 
 type SignInCredentials = {
   email: string;
@@ -78,14 +79,15 @@ export function useUpdateUserMutation() {
       }));
       return { previousSession };
     },
+    onSuccess: () => {
+      // Invalidate session query to refresh route context
+      queryClient.invalidateQueries({ queryKey: ['session'] });
+    },
     onError: (_err: Error, _updatedUser: UserUpdateVariables, context: any) => {
       if (context?.previousSession) {
         queryClient.setQueryData(['session'], context.previousSession);
       }
     },
-    // By only using onMutate and onError, we get an instant optimistic update
-    // without triggering extra refetches from onSuccess or onSettled, which
-    // were causing the root layout's Transition component to re-animate.
   }));
 }
 
@@ -144,6 +146,15 @@ export function useSignOutMutation() {
 export function useCurrentUser() {
   const context = useRouteContext({ from: '/dashboard' });
   return createMemo(() => context()?.session?.user);
+}
+
+/**
+ * Get current user from query cache (for account page)
+ * This version syncs with optimistic updates from mutations
+ */
+export function useCurrentUserFromQuery() {
+  const sessionQuery = useQuery(() => sessionQueryOptions());
+  return createMemo(() => sessionQuery.data?.user);
 }
 
 /**

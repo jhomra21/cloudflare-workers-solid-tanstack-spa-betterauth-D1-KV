@@ -14,7 +14,7 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '~/components/ui/dialog';
-import { useUpdateUserMutation, useDeleteUserMutation, useCurrentUser } from '~/lib/auth-actions';
+import { useUpdateUserMutation, useDeleteUserMutation, useCurrentUserFromQuery } from '~/lib/auth-actions';
 
 function getInitials(name: string) {
 	if (!name || name === 'Guest') return name.charAt(0).toUpperCase() || 'G';
@@ -28,7 +28,7 @@ function getInitials(name: string) {
 }
 
 function AccountPage() {
-	const user = useCurrentUser();
+	const user = useCurrentUserFromQuery();
 	const [name, setName] = createSignal('');
 
 	createEffect(() => {
