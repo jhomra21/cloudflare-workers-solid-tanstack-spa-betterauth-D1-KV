@@ -367,3 +367,122 @@ This guide covers:
 - Error handling patterns
 - Loading state management
 - Real-world component examples
+
+## 🌤️ Weather Dashboard
+
+A comprehensive weather dashboard demonstrating external API integration, real-time updates, and clean architecture patterns.
+
+### 🚀 Key Features
+
+- **Geolocation Detection**: Automatic current location detection with graceful fallbacks
+- **External API Integration**: OpenWeather API calls via Hono workers with proper error handling
+- **Real-time Updates**: Convex subscriptions for instant data synchronization across clients
+- **Smart Caching**: TanStack Query with 5-minute auto-refresh and intelligent staleness detection
+
+### 📍 Location Handling
+
+```tsx
+// Automatic geolocation with fallback
+const { location, error } = useGeolocation();
+
+if (location) {
+  // Use detected coordinates
+  await addLocation({
+    name: "Current Location",
+    latitude: location.latitude,
+    longitude: location.longitude,
+    isCurrentLocation: true
+  });
+} else {
+  // Fallback to manual city entry
+  await addLocation({ name: "New York, NY" });
+}
+```
+
+### 🔄 Weather Data Flow
+
+```mermaid
+graph LR
+    Client[SolidJS Client] --> API[Hono Worker]
+    API --> OpenWeather[OpenWeather API]
+    API --> Convex[(Convex DB)]
+    Convex --> Client
+```
+
+**1. Client Request**
+```tsx
+// Single endpoint for add/refresh (upsert pattern)
+const addLocationMutation = useAddLocationMutation();
+
+await addLocationMutation.mutateAsync({
+  name: "San Francisco, CA",
+  latitude: 37.7749,
+  longitude: -122.4194
+});
+```
+
+**2. Worker Processing**
+```typescript
+// api/weather.ts - Handles both new locations and refreshes
+app.post('/locations', async (c) => {
+  const weatherService = new WeatherService(c.env.OPENWEATHER_API_KEY);
+  
+  // Fetch fresh weather data
+  const weatherData = await weatherService.getCurrentWeather(lat, lon);
+  
+  // Save to Convex (upsert pattern)
+  await convex.mutation(api.weather.addLocation, locationData);
+  await convex.mutation(api.weather.updateWeatherData, weatherData);
+});
+```
+
+**3. Real-time Updates**
+```tsx
+// Client automatically receives updates via Convex subscriptions
+const weatherQuery = useQuery(api.weather.getUserWeatherDashboard, () => ({ 
+  userId: userId() 
+}));
+
+// Data updates automatically when weather refreshes
+<For each={weatherQuery.data()}>
+  {(item) => <WeatherCard location={item.location} weather={item.weather} />}
+</For>
+```
+
+### ⚡ Auto-Refresh System
+
+```tsx
+// Smart 5-minute auto-refresh with staleness detection
+onMount(() => {
+  const checkAndRefresh = async () => {
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    const isStale = !weather || weather.lastUpdated < fiveMinutesAgo;
+    
+    if (isStale) {
+      await refreshMutation.mutateAsync({
+        name: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        silent: true // No toast for auto-refresh
+      });
+    }
+  };
+  
+  setInterval(checkAndRefresh, 2 * 60 * 1000); // Check every 2 minutes
+});
+```
+
+### 🛠️ Setup Requirements
+
+Add your OpenWeather API key to Cloudflare Workers:
+
+```bash
+bunx wrangler secret put OPENWEATHER_API_KEY
+```
+
+The weather dashboard showcases:
+- **Clean API Design**: Single endpoint with upsert pattern
+- **TanStack Query**: Optimistic updates and intelligent caching
+- **Real-time Sync**: Convex subscriptions for instant updates
+- **Error Handling**: Graceful fallbacks and retry logic
+- **Performance**: Smart refresh timing and request deduplication

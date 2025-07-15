@@ -4,7 +4,7 @@ export type IconName = "panelLeft" | "panelLeftClose" | "house" | "dumbbell" | "
 | "music" | "musicNote" | "server" | "chevronupdown" | "sparkles" | "badgecheck" | "creditcard" | "bell" | 
 "logout" | "gear" | "user" | "login" | "stickynote" | "google" | 'image' | 'volume2' | 'mic' | 'micOff' |
 "archive" | "archive-restore" | "clock" | "calendar" | "file-clock" | "file-plus" | "plus" | "file" | "square-check"
-| "edit" | "check";
+| "edit" | "check" | "cloud";
 
 // Define props for the Icon component
 // We want to accept any standard SVG element attributes
@@ -256,6 +256,12 @@ const CheckIcon = (props: ComponentProps<"svg">) => (
   </svg>
 );
 
+const CloudIcon = (props: ComponentProps<"svg">) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {...props}>
+    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+  </svg>
+);
+
 export const Icon = (props: IconProps) => {
   const [local, others] = splitProps(props, ["name", "class", "width", "height"]);
   
@@ -372,6 +378,9 @@ export const Icon = (props: IconProps) => {
       </Match>
       <Match when={local.name === "check"}>
         <CheckIcon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
+      </Match>
+      <Match when={local.name === "cloud"}>
+        <CloudIcon width={defaultWidth} height={defaultHeight} class={defaultClass} {...others} />
       </Match>
     </Switch>
   );

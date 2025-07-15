@@ -57,4 +57,8 @@ app.all('/api/auth/*', (c) => {
 // Mount the notes API routes
 app.route('/api/notes/', notesApi);
 
+// Mount the weather API routes
+import weatherApi from './weather';
+app.route('/api/weather/', weatherApi);
+
 export default app;

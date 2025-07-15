@@ -12,6 +12,7 @@ export type Env = {
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
     FAL_KEY: string;
+    OPENWEATHER_API_KEY: string;
     NODE_ENV?: string;
 };
 

@@ -17,6 +17,7 @@ import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AuthImport } from './routes/auth'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
+import { Route as DashboardWeatherImport } from './routes/dashboard/weather'
 import { Route as DashboardTasksImport } from './routes/dashboard/tasks'
 import { Route as DashboardNotesImport } from './routes/dashboard/notes'
 import { Route as DashboardAccountImport } from './routes/dashboard/account'
@@ -50,6 +51,12 @@ const IndexRoute = IndexImport.update({
 const DashboardIndexRoute = DashboardIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+
+const DashboardWeatherRoute = DashboardWeatherImport.update({
+  id: '/weather',
+  path: '/weather',
   getParentRoute: () => DashboardRoute,
 } as any)
 
@@ -125,6 +132,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof DashboardTasksImport
       parentRoute: typeof DashboardImport
     }
+    '/dashboard/weather': {
+      id: '/dashboard/weather'
+      path: '/weather'
+      fullPath: '/dashboard/weather'
+      preLoaderRoute: typeof DashboardWeatherImport
+      parentRoute: typeof DashboardImport
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
@@ -148,6 +162,7 @@ interface DashboardRouteChildren {
   DashboardAccountRoute: typeof DashboardAccountRoute
   DashboardNotesRoute: typeof DashboardNotesRoute
   DashboardTasksRoute: typeof DashboardTasksRoute
+  DashboardWeatherRoute: typeof DashboardWeatherRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -155,6 +170,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAccountRoute: DashboardAccountRoute,
   DashboardNotesRoute: DashboardNotesRoute,
   DashboardTasksRoute: DashboardTasksRoute,
+  DashboardWeatherRoute: DashboardWeatherRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -169,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/notes': typeof DashboardNotesRoute
   '/dashboard/tasks': typeof DashboardTasksRoute
+  '/dashboard/weather': typeof DashboardWeatherRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
@@ -179,6 +196,7 @@ export interface FileRoutesByTo {
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/notes': typeof DashboardNotesRoute
   '/dashboard/tasks': typeof DashboardTasksRoute
+  '/dashboard/weather': typeof DashboardWeatherRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
@@ -191,6 +209,7 @@ export interface FileRoutesById {
   '/dashboard/account': typeof DashboardAccountRoute
   '/dashboard/notes': typeof DashboardNotesRoute
   '/dashboard/tasks': typeof DashboardTasksRoute
+  '/dashboard/weather': typeof DashboardWeatherRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
@@ -204,6 +223,7 @@ export interface FileRouteTypes {
     | '/dashboard/account'
     | '/dashboard/notes'
     | '/dashboard/tasks'
+    | '/dashboard/weather'
     | '/dashboard/'
     | '/api/auth/callback/google'
   fileRoutesByTo: FileRoutesByTo
@@ -213,6 +233,7 @@ export interface FileRouteTypes {
     | '/dashboard/account'
     | '/dashboard/notes'
     | '/dashboard/tasks'
+    | '/dashboard/weather'
     | '/dashboard'
     | '/api/auth/callback/google'
   id:
@@ -223,6 +244,7 @@ export interface FileRouteTypes {
     | '/dashboard/account'
     | '/dashboard/notes'
     | '/dashboard/tasks'
+    | '/dashboard/weather'
     | '/dashboard/'
     | '/api/auth/callback/google'
   fileRoutesById: FileRoutesById
@@ -270,6 +292,7 @@ export const routeTree = rootRoute
         "/dashboard/account",
         "/dashboard/notes",
         "/dashboard/tasks",
+        "/dashboard/weather",
         "/dashboard/"
       ]
     },
@@ -283,6 +306,10 @@ export const routeTree = rootRoute
     },
     "/dashboard/tasks": {
       "filePath": "dashboard/tasks.tsx",
+      "parent": "/dashboard"
+    },
+    "/dashboard/weather": {
+      "filePath": "dashboard/weather.tsx",
       "parent": "/dashboard"
     },
     "/dashboard/": {
