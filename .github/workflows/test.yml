@@ -31,4 +31,4 @@ jobs:
       run: bun install
       
     - name: Run Convex tests
-      run: bun test src/lib/__tests__/convex.simple.test.ts
+      run: bun test
