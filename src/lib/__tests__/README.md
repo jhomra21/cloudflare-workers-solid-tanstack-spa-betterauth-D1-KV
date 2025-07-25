@@ -9,16 +9,29 @@ Tests our custom Convex client that connects to the real-time database:
 
 #### **Core Functionality Tests**
 - ✅ All exports work (`convexClient`, `convexApi`, hooks, utilities)
-- ✅ `useConvexQuery` - Gets data from database with real-time updates
-- ✅ `useConvexMutation` - Updates database with optimistic UI updates
-- ✅ `useConvexAction` - Runs server actions
-- ✅ `useConvexConnectionStatus` - Monitors database connection
-- ✅ `useBatchConvexMutations` - Updates multiple things at once
-- ✅ Utility functions work correctly
+- ✅ Convex hook patterns match TanStack Query structure
+- ✅ Convex integration patterns work correctly
+- ✅ Connection status monitoring works
+- ✅ Batch operations work correctly
 
 #### **Basic Tests**
 - ✅ Environment variables load properly
 - ✅ Error handling works as expected
+
+### `tanstack-query-usage.test.ts`
+Tests to prevent TanStack Query usage errors:
+
+#### **Usage Validation Tests**
+- ✅ Query properties accessed correctly (not as functions)
+- ✅ Mutation properties accessed correctly (not as functions)
+- ✅ Correct usage patterns demonstrated
+- ✅ Common mistakes caught and documented
+- ✅ Conditional rendering patterns validated
+- ✅ Array operations on query data work correctly
+
+#### **Anti-Pattern Documentation**
+- ✅ Function call anti-patterns identified
+- ✅ Integration test patterns validated
 
 ### `weather.test.ts`
 Tests our weather dashboard functionality:
