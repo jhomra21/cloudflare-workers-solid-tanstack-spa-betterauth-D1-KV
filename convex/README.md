@@ -167,15 +167,16 @@ Here's how to use Convex in your SolidJS components:
 ### Reading Data with useQuery
 
 ```tsx
-import { useQuery, convexApi } from "~/lib/convex";
+import { useConvexQuery, convexApi } from "~/lib/convex";
 
 function TaskList() {
   const userId = createMemo(() => context()?.session?.user?.id);
   
-  // useQuery takes a Convex query function and a function that returns the arguments
-  const query = useQuery(
+  // useConvexQuery takes a Convex query function, args function, and query key function
+  const query = useConvexQuery(
     convexApi.tasks.getTasks, 
-    () => userId() ? { userId: userId()! } : null
+    () => userId() ? { userId: userId()! } : null,
+    () => ['tasks', userId()]
   );
   
   return (
@@ -205,19 +206,21 @@ function TaskList() {
 #### Using useMutation Hook (Recommended)
 
 ```tsx
-import { useMutation, convexApi } from "~/lib/convex";
+import { useConvexMutation, convexApi } from "~/lib/convex";
 import { toast } from "solid-sonner";
 
 function CreateTask() {
   const [text, setText] = createSignal("");
-  const mutation = useMutation();
+  const mutation = useConvexMutation(convexApi.tasks.createTask, {
+    invalidateQueries: [['convex', 'tasks']]
+  });
   
   const addTask = async (e: Event) => {
     e.preventDefault();
     if (!text().trim()) return;
     
     try {
-      await mutation.mutate(convexApi.tasks.createTask, { 
+      await mutation.mutateAsync({ 
         text: text(),
         userId: currentUserId
       });
@@ -234,10 +237,10 @@ function CreateTask() {
       <input 
         value={text()} 
         onInput={(e) => setText(e.target.value)}
-        disabled={mutation.isLoading()}
+        disabled={mutation.isPending()}
       />
-      <button type="submit" disabled={mutation.isLoading()}>
-        {mutation.isLoading() ? "Creating..." : "Add Task"}
+      <button type="submit" disabled={mutation.isPending()}>
+        {mutation.isPending() ? "Creating..." : "Add Task"}
       </button>
       {mutation.error() && (
         <p class="text-red-500">{mutation.error()?.message}</p>
@@ -286,15 +289,15 @@ function CreateTask() {
 ### Running Actions
 
 ```tsx
-import { useAction, convexApi } from "~/lib/convex";
+import { useConvexAction, convexApi } from "~/lib/convex";
 
 function EmailSender() {
   const [email, setEmail] = createSignal("");
-  const action = useAction();
+  const action = useConvexAction(convexApi.email.sendWelcomeEmail);
   
   const sendEmail = async () => {
     try {
-      await action.execute(convexApi.email.sendWelcomeEmail, {
+      await action.mutateAsync({
         to: email(),
         subject: "Welcome!"
       });
@@ -309,10 +312,10 @@ function EmailSender() {
       <input 
         value={email()} 
         onInput={(e) => setEmail(e.target.value)}
-        disabled={action.isLoading()}
+        disabled={action.isPending()}
       />
-      <button onClick={sendEmail} disabled={action.isLoading()}>
-        {action.isLoading() ? "Sending..." : "Send Email"}
+      <button onClick={sendEmail} disabled={action.isPending()}>
+        {action.isPending() ? "Sending..." : "Send Email"}
       </button>
     </div>
   );
@@ -360,6 +363,6 @@ To start working with Convex in this project:
 
 1. Make sure `VITE_CONVEX_URL` is set in your environment variables
 2. Import the necessary functions from `src/lib/convex.ts`
-3. Use `useQuery` for reading data and `convexClient.mutation` for writing data
+3. Use `useConvexQuery` for reading data and `useConvexMutation`/`useConvexAction` for writing data
 4. Define your schema in `convex/schema.ts`
 5. Create your server functions (queries and mutations) in modules within the `convex/` directory

@@ -1,6 +1,6 @@
 {
   "name": "test-workers-solid-tanstack-spa-betterauth-d1-kv",
-  "compatibility_date": "2025-06-17",
+  "compatibility_date": "2025-06-26",
   "main": "api/index.ts",
   "compatibility_flags": [
     "nodejs_compat"
@@ -8,7 +8,7 @@
   "vars": {
     "NODE_ENV": "production",
     "BETTER_AUTH_URL": "https://test-workers-solid-tanstack-spa-betterauth-d1-kv.jhonra121.workers.dev/", //URL of deployed worker
-    "BUN_VERSION": "1.2.16",
+    "BUN_VERSION": "1.2.19",
     "CONVEX_URL":"https://pastel-beagle-50.convex.cloud"
   },
   "observability": {
