@@ -7,124 +7,89 @@ This directory contains comprehensive tests for our application using **Bun's bu
 ## Test Files
 
 ### `convex.simple.test.ts`
-Tests our custom Convex client that connects to the real-time database:
+Tests our custom Convex client integration patterns and structure validation:
 
 #### **Core Functionality Tests**
 
 **1. Module Export Validation (`should export all required functions and objects`)**
-- **What it tests**: Validates that our Convex integration module will export exactly 8 required functions
+- **What it tests**: Validates that our Convex integration module exports the expected 8 functions
 - **Why it matters**: Ensures our module API is complete and consistent
-- **How it works**: Creates an array of expected exports and validates the structure without importing (avoids CI issues)
 - **Expected exports**: `convexClient`, `convexApi`, `useConvexQuery`, `useConvexMutation`, `useConvexAction`, `useBatchConvexMutations`, `prefetchConvexQuery`, `invalidateConvexQueries`
 
 **2. Hook Pattern Validation (`should validate convex hook patterns`)**
 - **What it tests**: Ensures our Convex hooks return TanStack Query-compatible objects
-- **Why it matters**: Prevents the common mistake of calling properties as functions (e.g., `data()` instead of `data`)
-- **How it works**: Creates mock objects that match expected TanStack Query structure and validates property types
-- **Key validations**: 
-  - `data`, `isLoading`, `error`, `isPending` are properties (not functions)
-  - `refetch`, `mutate`, `mutateAsync` are functions
+- **Why it matters**: Prevents common mistakes like calling properties as functions
+- **Key validations**: Properties vs functions are correctly typed
 
 **3. API Structure Validation (`should validate convex integration patterns`)**
-- **What it tests**: Validates that our Convex API follows the correct structure with proper types
-- **Why it matters**: Ensures our generated API matches Convex conventions
-- **How it works**: Creates mock API structure and validates `_type` properties and query key patterns
-- **Key validations**:
-  - Tasks API has `getTasks` (query), `createTask` (mutation), `updateTask` (mutation)
-  - Agents API has `getCanvasAgents` (query), `createAgent` (mutation), `updateAgentStatus` (mutation)
-  - Query keys follow hierarchical pattern: `['convex', 'tasks', 'user-123']`
+- **What it tests**: Validates that our Convex API follows correct structure with proper types
+- **Key validations**: Tasks and Agents APIs have correct query/mutation structure
 
 **4. Batch Operations (`should validate batch operations patterns`)**
-- **What it tests**: Validates that batch operations use `Promise.allSettled` for handling multiple concurrent operations
-- **Why it matters**: Ensures robust error handling when multiple operations run simultaneously
-- **How it works**: Creates a mock batch function that processes multiple promises and validates the pattern
-- **Key validations**:
-  - Batch function accepts array of promise-returning functions
-  - Returns a Promise (for async handling)
-  - Uses `Promise.allSettled` pattern for resilient concurrent operations
+- **What it tests**: Validates batch operations use `Promise.allSettled` for concurrent operations
+- **Why it matters**: Ensures robust error handling for multiple simultaneous operations
 
 **5. Real-time Integration (`should handle real-time updates with cached data`)**
-- **What it tests**: The complete integration between Convex real-time subscriptions and TanStack Query cache
-- **Why it matters**: This is the core feature - real-time data updates must seamlessly update the UI cache
-- **How it works**: 
-  1. Imports actual mocked modules (`@tanstack/solid-query`, `convex/browser`, generated API)
-  2. Sets up a real-time subscription using `convexClient.onUpdate`
-  3. Simulates real-time data arriving from Convex server
-  4. Verifies that TanStack Query cache gets updated automatically
-- **Key validations**:
-  - Subscription is created with correct API function reference (`api.tasks.getTasks`)
-  - Unsubscribe function is returned for cleanup
-  - When real-time data arrives, `queryClient.setQueryData` is called
-  - Cache update uses correct query key and new data
+- **What it tests**: Integration between Convex real-time subscriptions and TanStack Query cache
+- **Why it matters**: Core feature - real-time data updates must seamlessly update UI cache
+- **Key validations**: Subscription setup, cache updates, cleanup functions
 
 #### **Basic Tests**
 
 **6. Environment Variables (`should handle environment variables`)**
 - **What it tests**: Environment variable access and fallback handling
-- **Why it matters**: Ensures configuration works in different environments (dev, test, prod)
-- **How it works**: Reads `VITE_CONVEX_URL` with fallback and validates it's a non-empty string
+- **Why it matters**: Ensures configuration works across different environments
 
 **7. Error Handling (`should handle basic error scenarios`)**
 - **What it tests**: Basic JavaScript Error object creation and properties
-- **Why it matters**: Validates that error handling infrastructure works correctly
-- **How it works**: Creates an Error object and validates message and instanceof properties
-
-### `tanstack-query-usage.test.ts`
-Tests to prevent TanStack Query usage errors and document correct patterns:
-
-#### **Usage Validation Tests**
-- ✅ Query properties accessed correctly (`data`, `isLoading`, `isError`, `error`, `isPending` as properties)
-- ✅ Mutation properties accessed correctly (`isPending`, `error` as properties)
-- ✅ Function properties called correctly (`refetch`, `mutate`, `mutateAsync` as functions)
-- ✅ Conditional rendering patterns validated
-- ✅ Array operations on query data work correctly
-
-#### **Anti-Pattern Documentation**
-- ✅ Common mistakes identified (calling properties as functions)
-- ✅ Integration test patterns for component usage
-- ✅ Correct vs incorrect usage patterns documented
+- **Why it matters**: Validates error handling infrastructure works correctly
 
 ### `weather.test.ts`
-Tests our weather dashboard functionality with comprehensive API integration:
+Tests our weather API service functionality with clean, fast execution:
 
-#### **Weather Query Tests**
-- ✅ All weather functions export correctly (`weatherKeys`, `weatherQueryOptions`, mutation hooks)
-- ✅ Query keys generate consistently (`all`, `locations()`, `location(id)`, `dashboard(userId)`)
-- ✅ Query options configure properly (5min stale time, 30min refetch, background refresh)
-- ✅ Add location mutation creates without errors
-- ✅ Delete location mutation with optimistic updates works
-- ✅ Refresh weather mutation works
+#### **Weather Service Core Tests**
+- ✅ **Service instantiation** with and without API key validation
+- ✅ **Method availability** for all required functions
+- ✅ **Cache cleanup** functionality
 
-#### **Weather Service Tests**
-- ✅ WeatherService class creates with API key
-- ✅ Throws error without API key ("OpenWeather API key is required")
-- ✅ Has all required methods (`getCurrentWeather`, `geocodeLocation`, `reverseGeocode`, `cleanupCache`)
+#### **getCurrentWeather Tests**
+- ✅ **Successful data fetching** with proper OpenWeather → internal format transformation
+- ✅ **Network error handling** with instant retry logic (no delays in tests)
+- ✅ **Retry functionality** validation without timing dependencies
 
-#### **API Integration Tests**
-- ✅ Successful location addition handling
-- ✅ API error handling (graceful failure)
-- ✅ Mock fetch integration works correctly
+#### **geocodeLocation Tests**
+- ✅ **Location name to coordinates** conversion
+- ✅ **Location not found** error handling
+- ✅ **Name formatting** with and without state information
 
-#### **Data Structure Tests**
-- ✅ Location request data structure validation (name, lat/lng, flags)
-- ✅ Location response data structure validation (success, locationId, location object)
-- ✅ Query keys work for different users
-- ✅ Hierarchical query key structure maintained
+#### **reverseGeocode Tests**
+- ✅ **Coordinates to location name** conversion
+- ✅ **Reverse geocoding failure** handling
 
-#### **Advanced Features**
-- ✅ Exponential backoff retry logic (1s, 2s, 4s, capped at 30s)
-- ✅ Error handling for network/API/validation errors
-- ✅ Cache configuration (stale time, refetch intervals, background refresh)
+#### **Caching Tests**
+- ✅ **Request caching** to avoid duplicate API calls
+- ✅ **Cache efficiency** validation
+
+#### **Data Validation Tests**
+- ✅ **Request structure** validation (name, coordinates, flags)
+- ✅ **Response structure** validation (success, locationId, weather data)
+- ✅ **Coordinate range** validation (-90 to 90 lat, -180 to 180 lon)
+- ✅ **Data type** validation for all fields
+
+#### **Error Handling Tests**
+- ✅ **Network errors** with proper exception handling
+- ✅ **Invalid coordinates** boundary testing
+- ✅ **API rate limiting** scenarios
+- ✅ **Missing API key** validation
 
 ## Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (fast execution ~100ms)
 bun test
 
 # Run specific test files
 bun test src/lib/__tests__/convex.simple.test.ts
-bun test src/lib/__tests__/tanstack-query-usage.test.ts
 bun test src/lib/__tests__/weather.test.ts
 
 # Run tests in watch mode
@@ -138,40 +103,39 @@ bun test --reporter=verbose
 
 The tests cover:
 
-### ✅ Core Functionality
-- Module export validation and structure
-- TanStack Query integration patterns
-- Real-time data synchronization concepts
-- API service class instantiation
-- Environment variable handling
+### ✅ **Core Functionality**
+- **Convex integration** patterns and structure validation
+- **Weather API service** class instantiation and methods
+- **Environment variable** handling and configuration
+- **Error handling** infrastructure and patterns
 
-### ✅ Integration Scenarios
-- TanStack Query property vs function access patterns
-- Weather API integration with mock fetch
-- Query key generation and caching strategies
-- Mutation hook creation and configuration
+### ✅ **API Integration**
+- **Weather service** with OpenWeather API integration
+- **Mock fetch** for reliable, fast testing without external dependencies
+- **Data transformation** from external APIs to internal formats
+- **Caching strategies** for performance optimization
 
-### ✅ Edge Cases
-- Missing API keys and error handling
-- Network request failures
-- Invalid data structures
-- TypeScript type validation
+### ✅ **Edge Cases & Error Handling**
+- **Missing API keys** and authentication errors
+- **Network request failures** and retry logic
+- **Invalid data structures** and validation
+- **Boundary conditions** (coordinate ranges, empty responses)
 
-### ✅ Performance Features
-- Exponential backoff retry logic
-- Cache configuration (stale time, refetch intervals)
-- Background refresh capabilities
-- Optimistic update patterns
+### ✅ **Performance & Reliability**
+- **Fast test execution** (~100ms total) with mocked delays
+- **Clean console output** with suppressed service logs
+- **No external dependencies** - all tests run offline
+- **Deterministic results** with proper mocking
 
 ## Mock Strategy
 
-The tests use **Bun's built-in mocking system** to isolate functionality:
+The tests use **Bun's built-in mocking system** for fast, reliable testing:
 
-- **ConvexClient**: Mocked using `mock.module()` with query/mutation/action/onUpdate methods
-- **TanStack Query**: Mocked to return proper property/function structures for validation
-- **SolidJS**: Mocked reactive primitives (`createEffect`, `onCleanup`, `createSignal`)
-- **Network**: Mocked `global.fetch` for API testing with configurable responses
-- **External Libraries**: Toast notifications and other UI dependencies mocked
+- **Global fetch**: Mocked for all HTTP requests with configurable responses
+- **Console output**: Suppressed during tests to avoid confusing error messages
+- **setTimeout**: Mocked to make retry delays instant (no waiting in tests)
+- **ConvexClient**: Mocked for Convex integration pattern validation
+- **TanStack Query**: Mocked for structure validation without frontend dependencies
 
 ## TypeScript Support
 
@@ -182,75 +146,105 @@ To resolve TypeScript errors with `bun:test`, we use:
 
 ## Key Test Patterns
 
-### Module Mocking with Bun
+### Fast Mock Setup
 ```typescript
-// Mock external dependencies at module level
-mock.module('convex/browser', () => ({
-  ConvexClient: mock(() => ({
-    query: mock(() => Promise.resolve([])),
-    mutation: mock(() => Promise.resolve({})),
-    action: mock(() => Promise.resolve({})),
-    onUpdate: mock(() => mock(() => {}))
-  }))
+// Mock fetch globally for all HTTP requests
+const mockFetch = mock(() => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({})
 }));
+global.fetch = mockFetch as any;
+
+// Mock setTimeout to make delays instant
+const mockSetTimeout = mock((callback: Function) => {
+    callback(); // Execute immediately
+    return 1;
+});
+global.setTimeout = mockSetTimeout as any;
 ```
 
-### Property vs Function Validation
+### Clean Console Output
 ```typescript
-// Validate TanStack Query structure
-const mockQuery = {
-  data: [], // Property, not function
-  isLoading: false, // Property, not function
-  refetch: () => Promise.resolve() // Function
+// Suppress console.error during tests
+const originalConsoleError = console.error;
+const mockConsoleError = mock(() => {});
+
+beforeEach(() => {
+    console.error = mockConsoleError;
+});
+
+afterEach(() => {
+    console.error = originalConsoleError;
+});
+```
+
+### Weather Service Testing
+```typescript
+// Test successful API response transformation
+const mockWeatherResponse = {
+    main: { temp: 22.5, feels_like: 24.1, humidity: 65 },
+    wind: { speed: 3.2, deg: 180 },
+    weather: [{ main: 'Clear', description: 'clear sky', icon: '01d' }]
 };
 
-expect(typeof mockQuery.data).not.toBe('function');
-expect(typeof mockQuery.refetch).toBe('function');
-```
+mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: () => Promise.resolve(mockWeatherResponse)
+});
 
-### Exponential Backoff Testing
-```typescript
-// Test retry delay calculation
-const retryDelay = (attemptIndex: number) => 
-  Math.min(Math.pow(2, attemptIndex) * 1000, 30000);
-
-expect(retryDelay(0)).toBe(1000); // 1 second
-expect(retryDelay(1)).toBe(2000); // 2 seconds
-expect(retryDelay(2)).toBe(4000); // 4 seconds
-expect(retryDelay(10)).toBe(30000); // Capped at 30 seconds
+const result = await service.getCurrentWeather(40.7128, -74.0060);
+expect(result.temperature).toBe(22.5);
 ```
 
 ## Adding New Tests
 
 When adding new functionality:
 
-1. **Core Tests**: Add to `convex.simple.test.ts` for Convex client functionality
-2. **Usage Tests**: Add to `tanstack-query-usage.test.ts` for TanStack Query patterns
-3. **Feature Tests**: Add to `weather.test.ts` for weather-specific functionality
-4. **New Features**: Create new test files following the established patterns
+1. **Convex Integration**: Add to `convex.simple.test.ts` for real-time database patterns
+2. **API Services**: Add to `weather.test.ts` for external API integrations
+3. **New Services**: Create new test files following the established patterns:
+   - Mock external dependencies (fetch, console, setTimeout)
+   - Focus on core functionality, not complex integration scenarios
+   - Keep tests fast and deterministic
 
 ### Test Structure Template
 ```typescript
-describe('New Feature', () => {
-  beforeEach(() => {
-    mock.restore();
-    // Setup mocks
+describe('New Service', () => {
+  let ServiceClass: any;
+
+  beforeEach(async () => {
+    mockFetch.mockClear();
+    console.error = mockConsoleError;
+    global.setTimeout = mockSetTimeout as any;
+    
+    const serviceModule = await import('../../../path/to/service');
+    ServiceClass = serviceModule.ServiceClass;
   });
 
   afterEach(() => {
+    console.error = originalConsoleError;
+    global.setTimeout = originalSetTimeout;
     mock.restore();
   });
 
-  it('should handle normal case', () => {
-    // Test implementation
+  it('should handle normal case', async () => {
+    // Mock successful response
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: 'test' })
+    });
+
+    const service = new ServiceClass('api-key');
+    const result = await service.method();
+    
+    expect(result).toBeDefined();
   });
 
-  it('should handle error case', () => {
-    // Test error scenarios
-  });
-
-  it('should validate data structures', () => {
-    // Test data validation
+  it('should handle error case', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    
+    const service = new ServiceClass('api-key');
+    await expect(service.method()).rejects.toThrow();
   });
 });
 ```
@@ -264,16 +258,18 @@ For debugging failing tests:
 bun test --reporter=verbose
 
 # Run single test file
-bun test src/lib/__tests__/convex.simple.test.ts
+bun test src/lib/__tests__/weather.test.ts
 
 # Run specific test by name pattern
-bun test --grep "should export all required functions"
+bun test --grep "should handle network errors"
 ```
 
-## Continuous Integration
+## Performance & CI
 
-These tests are designed to run in CI environments and provide:
-- Fast execution with comprehensive mocking
-- Deterministic results without external dependencies
-- Clear error messages for debugging failures
-- Validation of TypeScript patterns and structures
+These tests are optimized for speed and reliability:
+
+- ✅ **Fast execution**: ~100ms total runtime
+- ✅ **No external dependencies**: All APIs mocked
+- ✅ **Clean output**: Console logs suppressed during testing
+- ✅ **Deterministic**: No timing dependencies or race conditions
+- ✅ **CI-friendly**: Reliable results in any environment
