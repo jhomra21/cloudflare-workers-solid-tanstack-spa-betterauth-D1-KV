@@ -44,6 +44,48 @@ Tests our custom Convex client integration patterns and structure validation:
 - **What it tests**: Basic JavaScript Error object creation and properties
 - **Why it matters**: Validates error handling infrastructure works correctly
 
+### `notes-api.test.ts`
+Tests our Notes API endpoints with comprehensive coverage of CRUD operations:
+
+#### **Notes API Core Tests**
+- ✅ **GET /api/notes/** - Fetch all notes for authenticated user
+- ✅ **GET /api/notes/:id** - Fetch single note by ID with user ownership validation
+- ✅ **POST /api/notes/** - Create new notes with validation
+- ✅ **PUT /api/notes/:id** - Update existing notes with partial updates
+- ✅ **DELETE /api/notes/:id** - Delete notes with ownership checks
+
+#### **Authentication & Authorization Tests**
+- ✅ **Unauthorized requests** return 401 for all endpoints
+- ✅ **User isolation** - users cannot access other users' notes
+- ✅ **Session validation** with cookie-based authentication
+
+#### **Data Validation Tests**
+- ✅ **Required fields** validation (title required for creation)
+- ✅ **Field types** validation (strings, dates, status values)
+- ✅ **ISO date format** validation for timestamps
+- ✅ **Status field** validation (active, archived, deleted)
+- ✅ **Response structure** validation for single notes and arrays
+
+#### **CRUD Operation Tests**
+- ✅ **Create notes** with title and optional content
+- ✅ **Read operations** with proper ordering (updatedAt DESC)
+- ✅ **Update operations** with partial field updates
+- ✅ **Delete operations** with success confirmation
+- ✅ **Empty content** handling (defaults to empty string)
+
+#### **Error Handling Tests**
+- ✅ **404 errors** for non-existent notes
+- ✅ **400 errors** for missing required fields
+- ✅ **500 errors** for database failures
+- ✅ **Malformed JSON** request handling
+
+#### **Edge Cases & Security Tests**
+- ✅ **Long content** handling (1000+ character titles, 10k+ content)
+- ✅ **Special characters** and Unicode support
+- ✅ **Null/undefined values** in updates
+- ✅ **Concurrent requests** handling
+- ✅ **Cross-user access prevention**
+
 ### `weather.test.ts`
 Tests our weather API service functionality with clean, fast execution:
 
@@ -85,12 +127,13 @@ Tests our weather API service functionality with clean, fast execution:
 ## Running Tests
 
 ```bash
-# Run all tests (fast execution ~100ms)
+# Run all tests (fast execution ~150ms)
 bun test
 
 # Run specific test files
 bun test src/lib/__tests__/convex.simple.test.ts
 bun test src/lib/__tests__/weather.test.ts
+bun test src/lib/__tests__/notes-api.test.ts
 
 # Run tests in watch mode
 bun test --watch
@@ -110,6 +153,7 @@ The tests cover:
 - **Error handling** infrastructure and patterns
 
 ### ✅ **API Integration**
+- **Notes API** with full CRUD operations and authentication
 - **Weather service** with OpenWeather API integration
 - **Mock fetch** for reliable, fast testing without external dependencies
 - **Data transformation** from external APIs to internal formats
@@ -201,8 +245,9 @@ expect(result.temperature).toBe(22.5);
 When adding new functionality:
 
 1. **Convex Integration**: Add to `convex.simple.test.ts` for real-time database patterns
-2. **API Services**: Add to `weather.test.ts` for external API integrations
-3. **New Services**: Create new test files following the established patterns:
+2. **External API Services**: Add to `weather.test.ts` for external API integrations
+3. **Internal API Endpoints**: Add to `notes-api.test.ts` for CRUD operations and authentication
+4. **New Services**: Create new test files following the established patterns:
    - Mock external dependencies (fetch, console, setTimeout)
    - Focus on core functionality, not complex integration scenarios
    - Keep tests fast and deterministic

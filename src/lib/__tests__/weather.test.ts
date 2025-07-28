@@ -353,3 +353,107 @@ describe('Weather API Error Handling', () => {
         expect(apiKeyError.message).toBe('Invalid OpenWeather API key');
     });
 });
+
+describe('Weather API Endpoints', () => {
+    const API_BASE = 'http://localhost:3000/api';
+    const MOCK_LOCATION_ID = 'location-456';
+
+    // Mock location data
+    const mockLocation = {
+        name: 'New York, NY, US',
+        latitude: 40.7128,
+        longitude: -74.0060,
+        isCurrentLocation: false
+    };
+
+    const mockWeatherData = {
+        temperature: 22.5,
+        feelsLike: 24.1,
+        humidity: 65,
+        windSpeed: 3.2,
+        windDirection: 180,
+        condition: 'Clear',
+        description: 'clear sky',
+        icon: '01d'
+    };
+
+    describe('GET /api/weather/', () => {
+        it('should return weather API health check', async () => {
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({
+                    message: 'Weather API is running',
+                    timestamp: expect.any(String)
+                })
+            });
+
+            const response = await fetch(`${API_BASE}/weather/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'session=valid-session'
+                }
+            });
+
+            const data = await response.json();
+
+            expect(data.message).toBe('Weather API is running');
+            expect(data.timestamp).toBeDefined();
+        });
+
+        it('should return 401 for unauthenticated requests', async () => {
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                json: () => Promise.resolve({ error: 'Authentication required' })
+            });
+
+            const response = await fetch(`${API_BASE}/weather/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            expect(response.ok).toBe(false);
+            expect(data.error).toBe('Authentication required');
+        });
+    });
+
+    describe('POST /api/weather/locations', () => {
+        it('should add location with coordinates', async () => {
+            const locationResponse = {
+                success: true,
+                locationId: MOCK_LOCATION_ID,
+                location: mockLocation,
+                weather: mockWeatherData,
+                lastUpdated: Date.now()
+            };
+
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve(locationResponse)
+            });
+
+            const response = await fetch(`${API_BASE}/weather/locations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'session=valid-session'
+                },
+                body: JSON.stringify(mockLocation)
+            });
+
+            const data = await response.json();
+
+            expect(data.success).toBe(true);
+            expect(data.locationId).toBe(MOCK_LOCATION_ID);
+            expect(data.location).toEqual(mockLocation);
+            expect(data.weather).toEqual(mockWeatherData);
+        });
+    });
+});
