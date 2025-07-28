@@ -47,7 +47,7 @@ describe('Notes API', () => {
 
     // Mock console.error to suppress logs during tests
     originalConsoleError = console.error;
-    mockConsoleError = mock(() => {});
+    mockConsoleError = mock(() => { });
     console.error = mockConsoleError;
 
     // Mock setTimeout for instant execution
@@ -144,7 +144,7 @@ describe('Notes API', () => {
     });
 
     it('should return notes ordered by updatedAt DESC', async () => {
-      const orderedNotes = [...mockNotes].sort((a, b) => 
+      const orderedNotes = [...mockNotes].sort((a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       );
 
@@ -909,7 +909,7 @@ describe('Notes API', () => {
 
     it('should validate status field values', async () => {
       const validStatuses = ['active', 'archived', 'deleted'];
-      
+
       const mockResponse = {
         id: MOCK_NOTE_ID,
         userId: MOCK_USER_ID,
@@ -919,7 +919,7 @@ describe('Notes API', () => {
         createdAt: '2024-01-01T00:00:00.000Z',
         updatedAt: '2024-01-01T00:00:00.000Z'
       };
-      
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1137,6 +1137,9 @@ describe('Notes API', () => {
           'Cookie': 'session=valid-session'
         }
       });
+
+      // Also validate the response was successful
+      expect(response.ok).toBe(true);
     });
   });
 });
