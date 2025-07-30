@@ -11,10 +11,12 @@ type Env = {
     GOOGLE_CLIENT_SECRET: string;
 }
 
-// Cache the auth instance to avoid re-initialization on every request in a warm worker
-let cachedAuth: ReturnType<typeof betterAuth> | null = null;
+type AuthInstance = ReturnType<typeof betterAuth>;
 
-export const getAuth = (env: Env) => {
+// Cache the auth instance to avoid re-initialization on every request in a warm worker
+let cachedAuth: AuthInstance | null = null;
+
+export const getAuth = (env: Env): AuthInstance => {
     // In local dev, env bindings can be undefined on initial server startup.
     // We only cache the auth instance if it's created with a valid environment.
     const isEnvValid = env.DB && typeof env.DB.prepare === 'function' && env.SESSIONS;
@@ -30,6 +32,11 @@ export const getAuth = (env: Env) => {
         database: {
             dialect: new D1Dialect({ database: env.DB }),
             type: "sqlite"
+        },
+        advanced: {
+            ipAddress: {
+                ipAddressHeaders: ["cf-connecting-ip"], // Cloudflare specific header
+            },
         },
         emailAndPassword: { 
             enabled: false, // Disabled due to worker free tier CPU limits and password hashing.
