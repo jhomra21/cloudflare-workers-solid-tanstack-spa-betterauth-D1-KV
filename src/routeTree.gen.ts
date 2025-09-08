@@ -10,173 +10,68 @@
 
 import { createFileRoute } from '@tanstack/solid-router'
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardWeatherRouteImport } from './routes/dashboard/weather'
+import { Route as DashboardTasksRouteImport } from './routes/dashboard/tasks'
+import { Route as DashboardNotesRouteImport } from './routes/dashboard/notes'
+import { Route as DashboardAccountRouteImport } from './routes/dashboard/account'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as DashboardImport } from './routes/dashboard'
-import { Route as AuthImport } from './routes/auth'
-import { Route as IndexImport } from './routes/index'
-import { Route as DashboardIndexImport } from './routes/dashboard/index'
-import { Route as DashboardWeatherImport } from './routes/dashboard/weather'
-import { Route as DashboardTasksImport } from './routes/dashboard/tasks'
-import { Route as DashboardNotesImport } from './routes/dashboard/notes'
-import { Route as DashboardAccountImport } from './routes/dashboard/account'
-
-// Create Virtual Routes
-
-const ApiAuthCallbackGoogleLazyImport = createFileRoute(
+const ApiAuthCallbackGoogleLazyRouteImport = createFileRoute(
   '/api/auth/callback/google',
 )()
 
-// Create/Update Routes
-
-const DashboardRoute = DashboardImport.update({
+const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthRoute = AuthImport.update({
+const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const DashboardIndexRoute = DashboardIndexImport.update({
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-
-const DashboardWeatherRoute = DashboardWeatherImport.update({
+const DashboardWeatherRoute = DashboardWeatherRouteImport.update({
   id: '/weather',
   path: '/weather',
   getParentRoute: () => DashboardRoute,
 } as any)
-
-const DashboardTasksRoute = DashboardTasksImport.update({
+const DashboardTasksRoute = DashboardTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
   getParentRoute: () => DashboardRoute,
 } as any)
-
-const DashboardNotesRoute = DashboardNotesImport.update({
+const DashboardNotesRoute = DashboardNotesRouteImport.update({
   id: '/notes',
   path: '/notes',
   getParentRoute: () => DashboardRoute,
 } as any)
-
-const DashboardAccountRoute = DashboardAccountImport.update({
+const DashboardAccountRoute = DashboardAccountRouteImport.update({
   id: '/account',
   path: '/account',
   getParentRoute: () => DashboardRoute,
 } as any)
-
-const ApiAuthCallbackGoogleLazyRoute = ApiAuthCallbackGoogleLazyImport.update({
-  id: '/api/auth/callback/google',
-  path: '/api/auth/callback/google',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/api/auth/callback/google.lazy').then((d) => d.Route),
-)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/solid-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthImport
-      parentRoute: typeof rootRoute
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
-    }
-    '/dashboard/account': {
-      id: '/dashboard/account'
-      path: '/account'
-      fullPath: '/dashboard/account'
-      preLoaderRoute: typeof DashboardAccountImport
-      parentRoute: typeof DashboardImport
-    }
-    '/dashboard/notes': {
-      id: '/dashboard/notes'
-      path: '/notes'
-      fullPath: '/dashboard/notes'
-      preLoaderRoute: typeof DashboardNotesImport
-      parentRoute: typeof DashboardImport
-    }
-    '/dashboard/tasks': {
-      id: '/dashboard/tasks'
-      path: '/tasks'
-      fullPath: '/dashboard/tasks'
-      preLoaderRoute: typeof DashboardTasksImport
-      parentRoute: typeof DashboardImport
-    }
-    '/dashboard/weather': {
-      id: '/dashboard/weather'
-      path: '/weather'
-      fullPath: '/dashboard/weather'
-      preLoaderRoute: typeof DashboardWeatherImport
-      parentRoute: typeof DashboardImport
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexImport
-      parentRoute: typeof DashboardImport
-    }
-    '/api/auth/callback/google': {
-      id: '/api/auth/callback/google'
-      path: '/api/auth/callback/google'
-      fullPath: '/api/auth/callback/google'
-      preLoaderRoute: typeof ApiAuthCallbackGoogleLazyImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface DashboardRouteChildren {
-  DashboardAccountRoute: typeof DashboardAccountRoute
-  DashboardNotesRoute: typeof DashboardNotesRoute
-  DashboardTasksRoute: typeof DashboardTasksRoute
-  DashboardWeatherRoute: typeof DashboardWeatherRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-}
-
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAccountRoute: DashboardAccountRoute,
-  DashboardNotesRoute: DashboardNotesRoute,
-  DashboardTasksRoute: DashboardTasksRoute,
-  DashboardWeatherRoute: DashboardWeatherRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
-}
-
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
-)
+const ApiAuthCallbackGoogleLazyRoute =
+  ApiAuthCallbackGoogleLazyRouteImport.update({
+    id: '/api/auth/callback/google',
+    path: '/api/auth/callback/google',
+    getParentRoute: () => rootRouteImport,
+  } as any).lazy(() =>
+    import('./routes/api/auth/callback/google.lazy').then((d) => d.Route),
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -189,7 +84,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
@@ -200,9 +94,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -213,7 +106,6 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleLazyRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -249,7 +141,6 @@ export interface FileRouteTypes {
     | '/api/auth/callback/google'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
@@ -257,68 +148,100 @@ export interface RootRouteChildren {
   ApiAuthCallbackGoogleLazyRoute: typeof ApiAuthCallbackGoogleLazyRoute
 }
 
+declare module '@tanstack/solid-router' {
+  interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/weather': {
+      id: '/dashboard/weather'
+      path: '/weather'
+      fullPath: '/dashboard/weather'
+      preLoaderRoute: typeof DashboardWeatherRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/tasks': {
+      id: '/dashboard/tasks'
+      path: '/tasks'
+      fullPath: '/dashboard/tasks'
+      preLoaderRoute: typeof DashboardTasksRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/notes': {
+      id: '/dashboard/notes'
+      path: '/notes'
+      fullPath: '/dashboard/notes'
+      preLoaderRoute: typeof DashboardNotesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/account': {
+      id: '/dashboard/account'
+      path: '/account'
+      fullPath: '/dashboard/account'
+      preLoaderRoute: typeof DashboardAccountRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/api/auth/callback/google': {
+      id: '/api/auth/callback/google'
+      path: '/api/auth/callback/google'
+      fullPath: '/api/auth/callback/google'
+      preLoaderRoute: typeof ApiAuthCallbackGoogleLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
+}
+
+interface DashboardRouteChildren {
+  DashboardAccountRoute: typeof DashboardAccountRoute
+  DashboardNotesRoute: typeof DashboardNotesRoute
+  DashboardTasksRoute: typeof DashboardTasksRoute
+  DashboardWeatherRoute: typeof DashboardWeatherRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAccountRoute: DashboardAccountRoute,
+  DashboardNotesRoute: DashboardNotesRoute,
+  DashboardTasksRoute: DashboardTasksRoute,
+  DashboardWeatherRoute: DashboardWeatherRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRouteWithChildren,
   ApiAuthCallbackGoogleLazyRoute: ApiAuthCallbackGoogleLazyRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/auth",
-        "/dashboard",
-        "/api/auth/callback/google"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/auth": {
-      "filePath": "auth.tsx"
-    },
-    "/dashboard": {
-      "filePath": "dashboard.tsx",
-      "children": [
-        "/dashboard/account",
-        "/dashboard/notes",
-        "/dashboard/tasks",
-        "/dashboard/weather",
-        "/dashboard/"
-      ]
-    },
-    "/dashboard/account": {
-      "filePath": "dashboard/account.tsx",
-      "parent": "/dashboard"
-    },
-    "/dashboard/notes": {
-      "filePath": "dashboard/notes.tsx",
-      "parent": "/dashboard"
-    },
-    "/dashboard/tasks": {
-      "filePath": "dashboard/tasks.tsx",
-      "parent": "/dashboard"
-    },
-    "/dashboard/weather": {
-      "filePath": "dashboard/weather.tsx",
-      "parent": "/dashboard"
-    },
-    "/dashboard/": {
-      "filePath": "dashboard/index.tsx",
-      "parent": "/dashboard"
-    },
-    "/api/auth/callback/google": {
-      "filePath": "api/auth/callback/google.lazy.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
