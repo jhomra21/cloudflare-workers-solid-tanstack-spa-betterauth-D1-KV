@@ -43,10 +43,10 @@ import {
     };
     
     return (
-      <div class="h-screen w-screen">
+      <div class="h-svh w-screen">
         <Show when={true} 
         // fallback={
-        //   <div class="h-screen w-screen flex items-center justify-center">
+        //   <div class="h-svh w-screen flex items-center justify-center">
         //     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
         //     <p class="ml-4">Verifying authentication...</p>
         //   </div>
@@ -79,7 +79,7 @@ import {
             }}
           > */}
             <SidebarProvider>
-              <div class="flex h-screen w-screen overflow-hidden bg-muted/40">
+              <div class="flex h-svh w-screen overflow-hidden bg-muted/40">
                 <AppSidebar />
                 <SidebarInset class="flex-grow min-w-0 bg-background rounded-xl shadow-md transition-all duration-150 ease-in-out flex flex-col">
                   <header class={`flex h-16 shrink-0 items-center rounded-t-xl gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-background/95 backdrop-blur-sm sticky top-0 z-20 md:relative md:z-10 transition-shadow duration-150 will-change-scroll-position ${isScrolled() ? 'shadow-md' : ''}`}>
@@ -98,7 +98,7 @@ import {
                   </header>
                   {/* Opacity gradient overlay positioned right under header for fade effect */}
                   <div class={`absolute top-16 left-0 right-0 h-6 bg-gradient-to-b from-background/90 to-transparent pointer-events-none z-30 transform transition-transform duration-200 will-change-transform ${isScrolled() ? 'translate-y-0' : 'translate-y-[-100%]'}`}></div>
-                  <div onScroll={handleScroll} class="flex-grow overflow-y-auto p-4  min-h-0">
+                  <div onScroll={handleScroll} class="flex-grow overflow-y-auto p-4">
                     <Suspense fallback={
                       <div class="w-full h-full flex items-center justify-center">
                         <p>Loading dashboard content...</p>
@@ -113,7 +113,7 @@ import {
                               { opacity: 0 },
                               { opacity: 1 }
                             ],
-                            { duration: 300, easing: 'ease-in-out' }
+                            { duration: 150, easing: 'ease-in-out' }
                           );
                           animation.finished.then(() => {
                             done();
@@ -125,7 +125,7 @@ import {
                               { opacity: 1 },
                               { opacity: 0 }
                             ],
-                            { duration: 200, easing: 'ease-in-out' }
+                            { duration: 150, easing: 'ease-in-out' }
                           );
                           animation.finished.then(() => {
                             done();

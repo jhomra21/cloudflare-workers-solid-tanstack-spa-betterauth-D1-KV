@@ -114,7 +114,7 @@ export function NotesPage() {
   };
 
   return (
-    <div class="px-1 py-4 min-h-screen">
+    <div class="px-1 py-4">
       <div class="flex flex-col space-y-8">
         {/* Header */}
         <div class="flex justify-between items-center">

@@ -86,7 +86,7 @@ const SheetContent = <T extends ValidComponent = "div">(
         class={cn(
           sheetVariants({ position: local.position }),
           local.class,
-          "max-h-screen overflow-y-auto w-[50%]"
+          "max-h-svh overflow-y-auto w-[50%]"
         )}
         {...others}
       >
