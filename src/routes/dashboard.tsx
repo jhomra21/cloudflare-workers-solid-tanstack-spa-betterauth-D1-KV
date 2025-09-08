@@ -3,13 +3,14 @@ import {
     createFileRoute,
   } 
   from '@tanstack/solid-router'
-  import { Suspense, Show, createSignal } from 'solid-js'
+  import { Suspense, Show, createSignal, createEffect, onCleanup } from 'solid-js'
   import { Transition } from 'solid-transition-group'
   import { QueryClient } from '@tanstack/solid-query'
   import {
     SidebarProvider,
     SidebarTrigger,
     SidebarInset,
+    useIsMobile
   } from '~/components/ui/sidebar'
   import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip"
   import { Separator } from "~/components/ui/separator"
@@ -30,6 +31,7 @@ import {
   
   function DashboardPage() {
     const [isScrolled, setIsScrolled] = createSignal(false);
+    const isMobile = useIsMobile();
     
     let scrollTimer: number;
     const handleScroll = (e: Event) => {
@@ -42,8 +44,27 @@ import {
       });
     };
     
+  // Mobile: document scroll controls header shadow
+  createEffect(() => {
+    if (!isMobile()) return;
+
+    const handleWindowScroll = () => {
+      if (scrollTimer) return;
+      scrollTimer = requestAnimationFrame(() => {
+        const scrolled = (document.scrollingElement?.scrollTop ?? window.scrollY ?? 0) as number;
+        setIsScrolled(scrolled > 10);
+        scrollTimer = 0;
+      });
+    };
+
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    // Initialize on mount in case we're already scrolled
+    handleWindowScroll();
+    onCleanup(() => window.removeEventListener('scroll', handleWindowScroll));
+  });
+    
     return (
-      <div class="h-svh w-screen">
+      <div class="min-h-svh w-screen">
         <Show when={true} 
         // fallback={
         //   <div class="h-svh w-screen flex items-center justify-center">
@@ -79,10 +100,10 @@ import {
             }}
           > */}
             <SidebarProvider>
-              <div class="flex min-h-svh w-screen overflow-hidden bg-muted/40">
+              <div class="flex min-h-svh w-screen md:overflow-x-hidden bg-muted/40">
                 <AppSidebar />
                 <SidebarInset class="flex-grow min-w-0 bg-background rounded-xl shadow-md transition-all duration-150 ease-in-out flex flex-col md:overflow-y-auto min-h-0">
-                  <header class={`flex h-16 shrink-0 items-center rounded-t-xl gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-background/95 backdrop-blur-sm sticky top-0 z-20 md:relative md:z-10 transition-shadow duration-150 will-change-scroll-position ${isScrolled() ? 'shadow-md' : ''}`}>
+                  <header class={`flex h-16 shrink-0 items-center rounded-xl gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-background/95 backdrop-blur-sm sticky top-0 z-20 md:relative md:z-10 transition-shadow duration-150 will-change-scroll-position ${isScrolled() ? 'shadow-md' : ''}`}>
                     <div class="flex items-center gap-2 px-4">
                       <Tooltip openDelay={500}>
                         <TooltipTrigger>

@@ -11,7 +11,7 @@ const Sheet = SheetPrimitive.Root
 const SheetTrigger = SheetPrimitive.Trigger
 const SheetClose = SheetPrimitive.CloseButton
 
-const portalVariants = cva("fixed inset-0 z-50 flex", {
+const portalVariants = cva("fixed inset-0 z-50 flex h-lvh w-screen", {
   variants: {
     position: {
       top: "items-start",
@@ -83,10 +83,11 @@ const SheetContent = <T extends ValidComponent = "div">(
     <SheetPortal position={local.position}>
       <SheetOverlay />
       <SheetPrimitive.Content
+        onOpenAutoFocus={(e) => e.preventDefault()}
         class={cn(
           sheetVariants({ position: local.position }),
           local.class,
-          "max-h-svh overflow-y-auto w-[50%]"
+          "top-0 bottom-auto h-dvh max-h-dvh overflow-y-auto !w-[60%] scroll-pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]"
         )}
         {...others}
       >

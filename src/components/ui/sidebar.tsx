@@ -203,13 +203,15 @@ const Sidebar: Component<SidebarProps> = (rawProps) => {
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            class="w-(--sidebar-width) bg-sidebar/98 rounded-r-xl p-0 text-sidebar-foreground"
+            class="h-dvh w-(--sidebar-width) bg-sidebar/98 rounded-r-xl p-0 text-sidebar-foreground"
             style={{
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE
             }}
             position={local.side}
           >
-            <div class="flex size-full flex-col">{local.children}</div>
+            <div class="flex size-full flex-col  pb-[calc(env(safe-area-inset-bottom,0px))]">
+              {local.children}
+            </div>
           </SheetContent>
         </Sheet>
       </Match>
@@ -333,8 +335,8 @@ const SidebarInset: Component<ComponentProps<"main">> = (props) => {
   return (
     <main
       class={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background/80 will-change-transform",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "relative flex min-h-svh flex-1 flex-col bg-background/80 md:h-svh",
+        "md:peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         local.class
       )}
       {...others}
@@ -372,7 +374,7 @@ const SidebarHeader: Component<ComponentProps<"div">> = (props) => {
 const SidebarFooter: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"])
   return (
-    <div data-sidebar="footer" class={cn("flex flex-col gap-2 p-2", local.class)} {...others} />
+    <div data-sidebar="footer" class={cn("flex flex-col gap-2 p-2 !bg-transparent", local.class)} {...others} />
   )
 }
 
