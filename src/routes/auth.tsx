@@ -31,7 +31,7 @@ type AuthAction = 'signIn' | 'signUp' | 'google' | null;
 type AuthTab = 'signIn' | 'signUp';
 
 function AuthPage() {
-  const sessionQuery = useQuery(() => sessionQueryOptions()) as QueryObserverResult<SessionQueryResult, Error>;
+  const sessionQuery = useQuery(sessionQueryOptions) as QueryObserverResult<SessionQueryResult, Error>;
   const navigate = useNavigate();
   const search = useSearch({ from: '/auth' });
 

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal, createMemo, Show, For, type Accessor } from 'solid-js';
-import { protectedLoader } from '~/lib/auth-guard';
 import { useConvexQuery, convexApi } from '~/lib/convex';
 import { useCurrentUserId } from '~/lib/auth-actions';
 import { AddLocationForm } from '~/components/weather/AddLocationForm';
@@ -17,7 +16,6 @@ type WeatherDashboardItem = {
 };
 
 export const Route = createFileRoute('/dashboard/weather')({
-  beforeLoad: protectedLoader,
   component: WeatherDashboard,
 });
 

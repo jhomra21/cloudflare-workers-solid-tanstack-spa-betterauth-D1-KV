@@ -6,9 +6,6 @@ dist-ssr
 
 .vscode
 
-.cursor
-.windsurfrules
-
 .env*
 !.env.production
 *.db
@@ -20,7 +17,3 @@ dist-ssr
 .cta.json
 
 .dev.vars
-
-AGENT.md
-
-.kiro

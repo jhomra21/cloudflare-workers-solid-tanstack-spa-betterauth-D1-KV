@@ -8,9 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import type { Component } from "solid-js"
 import { Show, createMemo } from "solid-js"
 import { Link, useNavigate } from "@tanstack/solid-router"
-import { useQuery } from "@tanstack/solid-query"
-import { sessionQueryOptions } from "~/lib/auth-guard"
-import { useSignOutMutation } from "~/lib/auth-actions"
+import { useSignOutMutation, useCurrentUser } from "~/lib/auth-actions"
 
 export const NavUser: Component = () => {
   const { isMobile, state, setOpenMobile } = useSidebar()
@@ -20,11 +18,8 @@ export const NavUser: Component = () => {
   // // Get user data from auth context
   // const user = createMemo(() => context()?.session?.user);
 
-  // Use the centralized, cached session query.
-  // This removes the staleTime: 0 override, respecting the global config.
-  const sessionQuery = useQuery(sessionQueryOptions);
-
-  const user = createMemo(() => sessionQuery.data?.user);
+  // Use route context-derived user (populated by the protected /dashboard loader)
+  const user = useCurrentUser();
 
   const getInitials = (name: string) => {
     if (!name || name === "Guest") return name.charAt(0).toUpperCase() || "G";

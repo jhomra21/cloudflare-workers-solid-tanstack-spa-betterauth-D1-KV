@@ -14,7 +14,10 @@ export const sessionQueryOptions = () => ({
     }
     return data;
   },
-  staleTime: 1000 * 60 * 5, // 5 minutes, matches global config.
+  staleTime: 1000 * 60 * 15, // 15 minutes, matches global config.
+  refetchOnWindowFocus: false,
+  retry: true,
+  failureCount: 2,
 });
 
 /**
